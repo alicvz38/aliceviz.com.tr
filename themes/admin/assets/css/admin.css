@@ -340,3 +340,7 @@ body .sidebar-wrapper #sidebar .theme-brand div.theme-text a.nav-link { font-siz
 #sidebar .theme-brand div.theme-text { min-width: 0; overflow: hidden; }
 #sidebar .theme-brand div.theme-text a { overflow: hidden; text-overflow: ellipsis; }
 #sidebar .theme-brand .theme-logo { flex-shrink: 0; }
+/* Etiket sayıyla tam aynı hizada (paragraf alt boşluğu hizayı kaydırıyordu); grup ikonun sağında kalan alanda ortalı */
+.stat-card > div:last-child { flex: 1; justify-content: center; }
+.stat-card > div:last-child p { margin: 0 !important; }
+.stat-card > div:last-child { margin-right: 15px; }
