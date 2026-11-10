@@ -116,7 +116,7 @@ final class View
     {
         // Canlıda (debug kapalı) varsa .min sürümü kullanılır (tools/minify.php üretir)
         $full = min_asset_file($this->path . '/assets/' . ltrim($file, '/'));
-        $version = is_file($full) ? '?v=' . filemtime($full) : '';
+        $version = asset_version($full);
         $rel = ltrim(substr(str_replace('\\', '/', $full), strlen(str_replace('\\', '/', $this->path . '/assets'))), '/');
         return url('themes/' . $this->theme . '/assets/' . $rel) . $version;
     }

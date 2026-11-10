@@ -61,6 +61,17 @@ function adsense_client(): ?string
     return setting('adsense_enabled', '0') === '1' && preg_match('/^ca-pub-\d{10,20}$/', $client) ? $client : null;
 }
 
+/**
+ * Dosya sürümü (önbellek kırıcı): değişme zamanı + boyut.
+ * Yükleme sırasında yarım kalan dosyanın sürümü, tamamlanmış dosyanınkinden farklı olur;
+ * böylece tarayıcı 1 yıllık önbellekte yarım dosyada takılı kalmaz.
+ */
+function asset_version(string $fullPath): string
+{
+    clearstatcache(true, $fullPath);
+    return is_file($fullPath) ? '?v=' . dechex((int) filemtime($fullPath)) . dechex((int) filesize($fullPath)) : '';
+}
+
 /** Sitenin kök adresi (https://alanadi). "www." kaldırılır; canonical / sitemap / paylaşım etiketleri için */
 function site_origin(): string
 {
@@ -107,7 +118,7 @@ function shared_asset(string $file): string
     $file = ltrim($file, '/');
     $full = min_asset_file(ROOT_PATH . '/assets/' . $file);
     $rel = substr($full, strlen(ROOT_PATH) + 1);
-    return url(str_replace('\\', '/', $rel)) . (is_file($full) ? '?v=' . filemtime($full) : '');
+    return url(str_replace('\\', '/', $rel)) . asset_version($full);
 }
 
 /** Panelden yüklenen favicon (yoksa null): ['url' => ..., 'type' => ...] */
@@ -119,7 +130,7 @@ function custom_favicon(): ?array
     }
     $types = ['png' => 'image/png', 'ico' => 'image/x-icon', 'webp' => 'image/webp', 'jpg' => 'image/jpeg'];
     $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-    return ['url' => url($path) . '?v=' . filemtime(ROOT_PATH . '/' . $path), 'type' => $types[$ext] ?? 'image/png'];
+    return ['url' => url($path) . asset_version(ROOT_PATH . '/' . $path), 'type' => $types[$ext] ?? 'image/png'];
 }
 
 /** Panelden yüklenen logonun adresi (yoksa null) */
@@ -129,7 +140,7 @@ function custom_logo(): ?string
     if ($path === '' || !is_file(ROOT_PATH . '/' . $path)) {
         return null;
     }
-    return url($path) . '?v=' . filemtime(ROOT_PATH . '/' . $path);
+    return url($path) . asset_version(ROOT_PATH . '/' . $path);
 }
 
 /** Logo işareti: yüklenen logo, yoksa varsayılan </> kutusu ($class: site 'brand-mark', panel 'site-brand-mark') */
