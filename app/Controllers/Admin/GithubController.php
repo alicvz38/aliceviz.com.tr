@@ -112,6 +112,7 @@ class GithubController extends AdminController
                 if ($project->summary) unset($mapped['summary']);
                 if ($project->tags) unset($mapped['tags']);
                 if ($project->demo_url) unset($mapped['demo_url']);
+                if ($project->language) unset($mapped['language']);
                 Project::updateById((int) $project->id, $mapped);
                 $count++;
             }

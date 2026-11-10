@@ -126,10 +126,11 @@ class ProjectController extends AdminController
         try {
             $repo = (new GithubService(Setting::get('github_token') ?: null))->repo((string) $project->github_repo);
             $mapped = GithubService::mapRepo($repo);
-            // Elle yazılmış açıklama ve etiketler korunur
+            // Elle yazılmış açıklama, etiketler ve dil korunur (GitHub dili boş/yanlış bildirebilir)
             if ($project->summary) unset($mapped['summary']);
             if ($project->tags) unset($mapped['tags']);
             if ($project->demo_url) unset($mapped['demo_url']);
+            if ($project->language) unset($mapped['language']);
             Project::updateById((int) $project->id, $mapped);
             $fresh = Project::find((int) $project->id);
             $this->respond('GitHub bilgileri güncellendi.', admin_url('projeler'), [
