@@ -1,0 +1,322 @@
+// Panel yardımcı betikleri (AJAX: assets/js/ajax.js)
+
+/**
+ * Equation DataTable'ı Türkçe ve panel görünümüyle başlatır.
+ *   AdminDT('#tablo')                                  -> istemci taraflı (sayfadaki satırlar)
+ *   AdminDT('#tablo', { serverSide: true, ajax: ... }) -> sunucu taraflı (binlerce kayıt)
+ */
+window.AdminDT = function (selector, options) {
+    options = options || {};
+    var svg = function (path) {
+        return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg>';
+    };
+    var language = Object.assign({
+        oPaginate: {
+            sPrevious: svg('<line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline>'),
+            sNext: svg('<line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline>')
+        },
+        sInfo: '_TOTAL_ kayıttan _START_ - _END_ arası',
+        sInfoEmpty: 'Kayıt yok',
+        sInfoFiltered: '(_MAX_ kayıt içinden)',
+        sSearch: svg('<circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>'),
+        sSearchPlaceholder: 'Ara...',
+        sLengthMenu: 'Göster: _MENU_',
+        sZeroRecords: 'Eşleşen kayıt bulunamadı',
+        sEmptyTable: 'Henüz kayıt yok',
+        sProcessing: '<span class="dt-loading">Yükleniyor...</span>',
+        sLoadingRecords: 'Yükleniyor...'
+    }, options.language || {});
+    delete options.language;
+
+    var settings = Object.assign({
+        dom: "<'dt--top-section'<'row'<'col-12 col-sm-6 d-flex justify-content-sm-start justify-content-center'l><'col-12 col-sm-6 d-flex justify-content-sm-end justify-content-center mt-sm-0 mt-3'f>>>" +
+             "<'table-responsive'tr>" +
+             "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count mb-sm-0 mb-3'i><'dt--pagination'p>>",
+        stripeClasses: [],
+        lengthMenu: [10, 25, 50, 100],
+        pageLength: 25,
+        autoWidth: false
+    }, options, { oLanguage: language });
+
+    var $table = window.jQuery(selector);
+    $table.on('error.dt', function () {
+        if (window.Ajax) Ajax.toast('Liste yüklenemedi. Oturumunuz kapanmış olabilir; sayfayı yenileyin.', 'danger');
+    });
+    return $table.DataTable(settings);
+};
+if (window.jQuery && window.jQuery.fn.dataTable) {
+    window.jQuery.fn.dataTable.ext.errMode = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    var adminUrl = (document.querySelector('meta[name="admin-url"]') || {}).content || '/admin/';
+    adminUrl = adminUrl.replace(/\/?$/, '/');
+
+    // data-confirm onay pencereleri: assets/js/ajax.js (temaya uygun pencere)
+
+    // Başlıktan otomatik slug önizlemesi
+    var title = document.getElementById('title');
+    var slug = document.getElementById('slug');
+    if (title && slug) {
+        var map = { 'ç': 'c', 'ğ': 'g', 'ı': 'i', 'İ': 'i', 'ö': 'o', 'ş': 's', 'ü': 'u', 'Ç': 'c', 'Ğ': 'g', 'Ö': 'o', 'Ş': 's', 'Ü': 'u' };
+        var touched = slug.value.length > 0;
+        slug.addEventListener('input', function () { touched = slug.value.length > 0; });
+        title.addEventListener('input', function () {
+            if (touched) return;
+            slug.placeholder = title.value.replace(/[çğıİöşüÇĞÖŞÜ]/g, function (c) { return map[c]; })
+                .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'otomatik-olusturulur';
+        });
+    }
+
+    // Görsel önizleme (data-preview="#hedefImg" veya proje formundaki #image)
+    document.querySelectorAll('input[type="file"][data-preview], #image').forEach(function (input) {
+        var preview = document.querySelector(input.dataset.preview || '#imagePreview');
+        if (!preview) return;
+        input.addEventListener('change', function () {
+            var file = input.files && input.files[0];
+            if (!file) return;
+            preview.src = URL.createObjectURL(file);
+            preview.classList.remove('d-none');
+        });
+    });
+
+    // GitHub: tümünü seç
+    var all = document.getElementById('selectAllRepos');
+    if (all) {
+        all.addEventListener('change', function () {
+            document.querySelectorAll('.repo-check:not(:disabled)').forEach(function (c) { c.checked = all.checked; });
+        });
+    }
+
+    // Tablo içi hızlı filtre (DataTable kullanılmayan tablolar için)
+    var filter = document.getElementById('tableFilter');
+    if (filter) {
+        filter.addEventListener('input', function () {
+            var q = filter.value.toLocaleLowerCase('tr');
+            document.querySelectorAll(filter.dataset.target + ' tbody tr').forEach(function (tr) {
+                tr.style.display = tr.textContent.toLocaleLowerCase('tr').indexOf(q) > -1 ? '' : 'none';
+            });
+        });
+        if (filter.value) filter.dispatchEvent(new Event('input'));
+    }
+
+    // data-datatable özniteliği olan tablolar otomatik DataTable olur
+    //   <table data-datatable data-order='[[1,"asc"]]' data-no-sort="0,6">
+    document.querySelectorAll('table[data-datatable]').forEach(function (t) {
+        var noSort = (t.dataset.noSort || '').split(',').filter(Boolean).map(Number);
+        var q = new URLSearchParams(location.search).get('q') || '';
+        AdminDT(t, {
+            order: t.dataset.order ? JSON.parse(t.dataset.order) : [],
+            pageLength: parseInt(t.dataset.pageLength || '25', 10),
+            columnDefs: noSort.length ? [{ targets: noSort, orderable: false }] : [],
+            search: { search: q }
+        });
+    });
+
+    // ------------------------------------------------------------ AJAX davranışları
+
+    // Bakım modu: durum değişince sayfayı yenile (üst düğme + gösterge paneli uyarısı birlikte değişsin)
+    document.addEventListener('ajax:success', function (e) {
+        var form = e.target;
+        if (!form.classList || !form.classList.contains('js-maintenance-form')) return;
+        e.preventDefault();
+        Ajax.navigate(window.location.href, e.detail);
+    });
+
+    // Proje durumu (Yayında / Taslak) — yerinde güncelle
+    document.addEventListener('ajax:success', function (e) {
+        var form = e.target;
+        if (!form.classList || !form.classList.contains('js-toggle-status')) return;
+        var btn = form.querySelector('button');
+        var on = e.detail.data && e.detail.data.published;
+        btn.textContent = on ? 'Yayında' : 'Taslak';
+        btn.classList.toggle('badge-light-success', !!on);
+        btn.classList.toggle('badge-light-dark', !on);
+        var row = form.closest('tr');
+        var eye = row && row.querySelector('.js-view-link');
+        if (eye) eye.classList.toggle('d-none', !on);
+    });
+
+    // Proje türü (Web / Uygulama): listedeki açılır menü değişince hemen kaydet
+    document.addEventListener('change', function (e) {
+        var sel = e.target.closest('.kind-select');
+        if (!sel) return;
+        sel.disabled = true;
+        Ajax.post(sel.dataset.url, { kind: sel.value }).then(function (res) {
+            sel.disabled = false;
+            Ajax.showMessages(res);
+            sel.classList.toggle('has-kind', !!sel.value);
+            var td = sel.closest('td');
+            if (td) td.setAttribute('data-order', sel.value ? sel.options[sel.selectedIndex].text : 'zz');
+            // DataTable sıralaması yeni türü görsün
+            var table = sel.closest('table');
+            if (window.jQuery && table && jQuery.fn.dataTable && jQuery.fn.dataTable.isDataTable(table)) {
+                jQuery(table).DataTable().row(sel.closest('tr')).invalidate('dom');
+            }
+        });
+    });
+
+    // GitHub senkronize — yıldız / fork hücrelerini güncelle
+    document.addEventListener('ajax:success', function (e) {
+        var form = e.target;
+        if (!form.classList || !form.classList.contains('js-sync')) return;
+        var row = form.closest('tr');
+        var d = e.detail.data || {};
+        var cell = row && row.querySelector('[data-col="stats"]');
+        if (cell) cell.textContent = (d.stars || 0) + ' / ' + (d.forks || 0);
+    });
+
+    // Proje formu: kaydettikten sonra görsel alanlarını tazele
+    var projectForm = document.getElementById('projectForm');
+    if (projectForm) {
+        projectForm.addEventListener('ajax:success', function (e) {
+            var d = e.detail.data || {};
+            var preview = document.getElementById('imagePreview');
+            var file = document.getElementById('image');
+            var remove = document.getElementById('remove_image');
+            if (file) file.value = '';
+            if (remove) remove.checked = false;
+            if (preview) {
+                if (d.image) { preview.src = d.image; preview.classList.remove('d-none'); }
+                else { preview.removeAttribute('src'); preview.classList.add('d-none'); }
+            }
+            if (d.slug && slug) slug.value = d.slug;
+        });
+    }
+
+    // Ayarlar: token alanını temizle
+    var settingsForm = document.getElementById('settingsForm');
+    if (settingsForm) {
+        settingsForm.addEventListener('ajax:success', function () {
+            var token = document.getElementById('github_token');
+            if (token) token.value = '';
+        });
+    }
+
+    // ------------------------------------------------------------ Bildirimler: WebSocket (canlı) + yedek yoklama
+    var last = null;
+    var live = false;
+    var lastPoll = 0;
+
+    function setBadge(id, count) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        count = parseInt(count, 10) || 0;
+        el.textContent = count > 0 ? (count > 999 ? '999+' : count) : '';
+        el.classList.toggle('d-none', count <= 0);
+    }
+
+    /** Sayılar geldiğinde (WebSocket veya yoklama) rozetleri güncelle, sayfalara haber ver */
+    function handleCounters(res) {
+        setBadge('badge-messages', res.messages);
+        setBadge('navbar-badge-messages', res.messages);
+        setBadge('badge-quotes', res.quotes);
+        setBadge('badge-chat', res.chats);
+        if (last && !live) { // canlı bağlantıda ayrıntılı bildirimler ayrıca gelir
+            if (res.messages > last.messages) Ajax.toast('Yeni e-postanız var!', 'info');
+            if (res.quotes > last.quotes) Ajax.toast('Yeni bir teklif talebi geldi!', 'info');
+            if (res.chats > last.chats && !document.getElementById('chatApp')) Ajax.toast('Canlı destekte yeni mesaj var!', 'info');
+        }
+        document.dispatchEvent(new CustomEvent('admin:counters', { detail: {
+            messages: res.messages,
+            quotes: res.quotes,
+            synced_ago: res.synced_ago,
+            progress: res.progress,
+            mail_version: res.mail_version,
+            live: live,
+            changed: !!last && last.mail_version !== res.mail_version
+        } }));
+        last = res;
+    }
+
+    function poll() {
+        if (document.hidden) return;
+        // Canlı bağlantı varken yoklama yalnızca 2 dakikada bir yedek olarak yapılır
+        if (live && Date.now() - lastPoll < 120000) return;
+        lastPoll = Date.now();
+        Ajax.get(adminUrl + 'bildirimler').then(function (res) { if (res.ok) handleCounters(res); });
+    }
+
+    function setLive(on) {
+        live = on;
+        window.adminRealtimeLive = on;
+        document.documentElement.classList.toggle('realtime-live', on);
+        document.dispatchEvent(new CustomEvent('admin:realtime', { detail: { live: on } }));
+    }
+
+    // WebSocket canlı bağlantı (realtime/server.php çalışıyorsa)
+    var portMeta = document.querySelector('meta[name="realtime-port"]');
+    var tokenMeta = document.querySelector('meta[name="realtime-token"]');
+    var retry = 2000;
+    function connectRealtime() {
+        if (!portMeta || !tokenMeta || !('WebSocket' in window)) return;
+        var url = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.hostname + ':' + portMeta.content + '/?token=' + encodeURIComponent(tokenMeta.content);
+        var ws;
+        try { ws = new WebSocket(url); } catch (e) { return; }
+        ws.onopen = function () { retry = 2000; setLive(true); };
+        ws.onmessage = function (e) {
+            var d;
+            try { d = JSON.parse(e.data); } catch (err) { return; }
+            if (d.type === 'counters' || d.type === 'hello') handleCounters(d);
+            if (d.type === 'new_mail') {
+                d.items.slice(0, 3).forEach(function (m) {
+                    Ajax.toast((m.source === 'email' ? 'Yeni e-posta: ' : 'Siteden yeni mesaj: ') + (m.name || m.email) + ' — ' + m.subject, 'info', 7000);
+                });
+            }
+            // Canlı destek olayları: Canlı Destek sayfası dinler; başka sayfadaysanız bildirim çıkar
+            if (d.type === 'chat' || d.type === 'typing') {
+                document.dispatchEvent(new CustomEvent('admin:chat', { detail: d }));
+                if (d.type === 'chat' && d.message.sender === 'visitor' && !document.getElementById('chatApp')) {
+                    Ajax.toast('Canlı destek · ' + (d.name || 'Ziyaretçi') + ': ' + d.message.body.slice(0, 80), 'info', 8000);
+                }
+            }
+            if (d.type === 'new_quote') {
+                d.items.slice(0, 3).forEach(function (q) { Ajax.toast('Yeni teklif talebi: ' + q.name, 'info', 7000); });
+            }
+        };
+        ws.onclose = function () {
+            setLive(false);
+            setTimeout(connectRealtime, retry);
+            retry = Math.min(retry * 2, 60000); // sunucu kapalıysa giderek seyrek dene
+        };
+        // Sekme tekrar görünür olunca güncel sayıları iste
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden && ws.readyState === 1) ws.send('refresh');
+        });
+    }
+
+    connectRealtime();
+    poll();
+    setInterval(poll, 30000);
+});
+
+/**
+ * Tüm panel metin alanları: yazdıkça otomatik uzar (en az CSS min-height kadar,
+ * en fazla ekranın %70'i; sonrası kaydırma). Sohbet yanıt kutusu hariç.
+ */
+(function () {
+    var SKIP = '.chat-reply textarea, #chatReplyInput, [data-no-autogrow]';
+    function grow(t) {
+        if (!t || t.matches(SKIP)) return;
+        var max = Math.round(window.innerHeight * 0.7);
+        t.style.height = 'auto';
+        var h = t.scrollHeight + (t.offsetHeight - t.clientHeight);
+        t.style.height = Math.min(h, max) + 'px';
+        t.style.overflowY = h > max ? 'auto' : 'hidden';
+    }
+    function growAll(root) {
+        (root || document).querySelectorAll('textarea.form-control').forEach(grow);
+    }
+    document.addEventListener('input', function (e) {
+        if (e.target.tagName === 'TEXTAREA') grow(e.target);
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        growAll();
+        // Sekme/akordeon açıldığında gizli alanların boyunu yeniden hesapla
+        document.addEventListener('shown.bs.tab', function () { growAll(); });
+        document.addEventListener('shown.bs.collapse', function () { growAll(); });
+        document.addEventListener('shown.bs.modal', function (e) { growAll(e.target); });
+    });
+    window.addEventListener('load', function () { growAll(); });
+    window.AdminAutogrow = growAll;
+})();

@@ -1,0 +1,331 @@
+/**
+ * CANLI DESTEK — ziyaretçi penceresi (sağ alt)
+ * - Mesajlar WebSocket ile anında gelir (realtime/server.php çalışıyorsa)
+ * - WebSocket yoksa kısa aralıklarla kontrol edilir (pencere açıkken 2,5 sn, kapalıyken 10 sn)
+ * - Sohbet tarayıcıdaki çerezle hatırlanır; sayfa değişse de devam eder
+ */
+(function () {
+    'use strict';
+    var root = document.getElementById('chatWidget');
+    if (!root || !window.Ajax) return;
+    document.body.classList.add('has-chat');
+
+    var base = root.dataset.base;
+    var $ = function (id) { return document.getElementById(id); };
+    var panel = $('chatPanel'), fab = $('chatFab'), body = $('chatBody'), badge = $('chatBadge');
+    var startForm = $('chatStart'), compose = $('chatCompose'), input = $('chatInput');
+    var typingEl = $('chatTyping'), statusEl = $('chatStatus'), presenceEl = $('chatPresence');
+
+    var state = { conversation: null, online: false, welcome: '', offline: '' };
+    var seen = {};          // gösterilen mesaj kimlikleri
+    var lastId = 0;
+    var unread = 0;
+    var ws = null, wsLive = false, wsRetry = 3000;
+    var typingTimer = null, lastTypingSent = 0, pollTimer = null;
+    var originalTitle = document.title, titleTimer = null;
+
+    function isOpen() { return root.classList.contains('open'); }
+
+    // ------------------------------------------------------------ Görünüm
+    function setOnline(on) {
+        state.online = !!on;
+        presenceEl.classList.toggle('on', state.online);
+        statusEl.textContent = state.online ? 'Çevrimiçi · genelde birkaç dakikada yanıt verir' : 'Çevrimdışı · e-posta ile dönüş yapılır';
+        $('chatEmail').placeholder = state.online ? 'E-posta (isteğe bağlı)' : 'E-posta * (size dönebilmem için)';
+        var w = $('chatWelcome').firstElementChild;
+        w.textContent = state.online || state.conversation ? state.welcome : (state.offline || state.welcome);
+    }
+
+    var RATING_LABELS = ['', 'Çok kötü', 'Kötü', 'İdare eder', 'İyi', 'Mükemmel'];
+
+    /** Sohbet durumu: yok -> başlatma formu · açık -> yazma alanı · kapalı -> değerlendirme + yeni sohbet */
+    function setConversation(conv) {
+        state.conversation = conv;
+        var open = !!conv && conv.status === 'open';
+        var closed = !!conv && conv.status !== 'open';
+        startForm.hidden = !!conv;
+        compose.hidden = !open;
+        $('chatEnd').hidden = !open;
+        $('chatEnded').hidden = !closed;
+        if (closed) {
+            showTyping(false);
+            var rated = conv.rating != null;
+            $('chatRate').hidden = rated;
+            $('chatRated').hidden = !rated;
+            if (rated) $('chatRatedStars').textContent = '★★★★★'.slice(0, conv.rating) + '☆☆☆☆☆'.slice(0, 5 - conv.rating);
+            scrollDown();
+        }
+    }
+
+    function addMessage(m) {
+        if (!m || seen[m.id]) return;
+        seen[m.id] = true;
+        lastId = Math.max(lastId, m.id);
+        var row = document.createElement('div');
+        row.className = 'chat-msg ' + (m.sender === 'visitor' ? 'me' : (m.sender === 'system' ? 'system' : 'them'));
+        var bubble = document.createElement('div');
+        bubble.className = 'chat-bubble';
+        bubble.textContent = m.body;
+        row.appendChild(bubble);
+        if (m.sender !== 'system') {
+            var t = document.createElement('time');
+            t.textContent = m.time;
+            row.appendChild(t);
+        }
+        body.appendChild(row);
+        scrollDown();
+        if (m.sender === 'admin') {
+            showTyping(false);
+            if (!isOpen() || document.hidden) notify();
+        }
+        // Sistem notu (ör. yönetici sohbeti kapattı): güncel durumu al -> değerlendirme ekranı
+        if (m.sender === 'system' && state.conversation && state.conversation.status === 'open') {
+            load(isOpen());
+        }
+    }
+
+    function scrollDown() { body.scrollTop = body.scrollHeight; }
+
+    function showTyping(on) {
+        typingEl.hidden = !on;
+        clearTimeout(typingTimer);
+        if (on) {
+            scrollDown();
+            typingTimer = setTimeout(function () { typingEl.hidden = true; }, 4500);
+        }
+    }
+
+    function setBadge(n) {
+        unread = n;
+        badge.hidden = !n || isOpen();
+        badge.textContent = n > 9 ? '9+' : n;
+    }
+
+    /** Yeni yanıt: rozet + sekme başlığı + kısa ses */
+    function notify() {
+        setBadge(unread + 1);
+        if (!titleTimer) {
+            var flip = false;
+            titleTimer = setInterval(function () {
+                document.title = (flip = !flip) ? '💬 Yeni mesaj' : originalTitle;
+            }, 1200);
+        }
+        try {
+            var ctx = new (window.AudioContext || window.webkitAudioContext)();
+            var o = ctx.createOscillator(), g = ctx.createGain();
+            o.type = 'sine'; o.frequency.value = 880;
+            g.gain.setValueAtTime(0.0001, ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.25);
+            o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.26);
+        } catch (e) { /* ses çalınamadı */ }
+    }
+
+    function clearNotify() {
+        clearInterval(titleTimer);
+        titleTimer = null;
+        document.title = originalTitle;
+    }
+
+    function resetChat() {
+        setConversation(null);
+        selectStars(0);
+        $('chatRateComment').value = '';
+        Array.prototype.slice.call(body.querySelectorAll('.chat-msg:not(.welcome)')).forEach(function (n) { n.remove(); });
+        seen = {}; lastId = 0;
+        if (ws) { try { ws.close(); } catch (e) {} ws = null; }
+        setOnline(state.online);
+    }
+
+    // ------------------------------------------------------------ Veri
+    function applyPayload(d) {
+        if (!d) return;
+        if (d.enabled === false) { root.hidden = true; return; }
+        state.welcome = d.welcome || '';
+        state.offline = d.offline || '';
+        if (d.conversation) {
+            setConversation(d.conversation);
+        } else if (d.conversation === null && state.conversation) {
+            resetChat();
+        }
+        setOnline(d.online);
+        (d.messages || []).forEach(addMessage);
+        if (typeof d.unread === 'number' && !isOpen()) setBadge(d.unread);
+        if (d.typing) showTyping(true);
+        if (d.ws && !ws) connect(d.ws);
+        schedulePoll();
+    }
+
+    function load(open) {
+        return Ajax.get(base + '/durum' + (open ? '?acik=1' : '')).then(function (d) { if (d.ok) applyPayload(d); });
+    }
+
+    function poll() {
+        // Kapalı sohbette yeni mesaj gelmez; yalnızca seyrek çevrimiçi durumu kontrolü
+        if (!state.conversation || state.conversation.status !== 'open') {
+            Ajax.get(base + '/durum').then(function (d) { if (d.ok) setOnline(d.online); schedulePoll(); });
+            return;
+        }
+        Ajax.get(base + '/mesajlar?after=' + lastId + (isOpen() ? '&acik=1' : '')).then(function (d) {
+            if (d.ok) applyPayload(d); else schedulePoll();
+        });
+    }
+
+    /** WebSocket bağlıysa yalnızca seyrek yedek kontrol yapılır */
+    function schedulePoll() {
+        clearTimeout(pollTimer);
+        var delay = wsLive ? 60000 : (isOpen() ? 2500 : 10000);
+        if (!state.conversation && !isOpen()) delay = 60000;
+        pollTimer = setTimeout(poll, delay);
+    }
+
+    function connect(cfg) {
+        if (!('WebSocket' in window)) return;
+        try {
+            ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.hostname + ':' + cfg.port + '/?token=' + encodeURIComponent(cfg.token));
+        } catch (e) { ws = null; return; }
+        ws.onopen = function () { wsLive = true; wsRetry = 3000; schedulePoll(); };
+        ws.onmessage = function (e) {
+            var d; try { d = JSON.parse(e.data); } catch (err) { return; }
+            if (d.type === 'chat') addMessage(d.message);
+            if (d.type === 'typing' && d.who === 'admin') showTyping(true);
+            if (d.type === 'presence' || d.type === 'hello') setOnline(d.online);
+        };
+        ws.onclose = function () {
+            var was = wsLive;
+            wsLive = false;
+            ws = null;
+            schedulePoll(); // yedek kontrole geç
+            if (state.conversation && was) {
+                setTimeout(function () { if (!ws && state.conversation) load(false); }, wsRetry);
+                wsRetry = Math.min(wsRetry * 2, 60000);
+            }
+        };
+        ws.onerror = function () { /* onclose ele alır */ };
+    }
+
+    // ------------------------------------------------------------ Etkileşim
+    function toggle(open) {
+        open = open === undefined ? !isOpen() : open;
+        root.classList.toggle('open', open);
+        panel.setAttribute('aria-hidden', String(!open));
+        fab.setAttribute('aria-expanded', String(open));
+        if (open) {
+            setBadge(0);
+            clearNotify();
+            load(true).then(function () {
+                scrollDown();
+                (state.conversation ? input : startForm.querySelector('input[name="name"]')).focus();
+            });
+        }
+        schedulePoll();
+    }
+
+    fab.addEventListener('click', function () { toggle(); });
+    $('chatClose').addEventListener('click', function () { toggle(false); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && isOpen()) toggle(false); });
+    document.addEventListener('visibilitychange', function () { if (!document.hidden && isOpen()) clearNotify(); });
+
+    // Sohbeti başlat (ajax.js formu gönderir ve hatalı alanları işaretler)
+    $('chatPage').value = location.pathname;
+    startForm.addEventListener('ajax:success', function (e) {
+        e.preventDefault();
+        startForm.reset();
+        applyPayload(e.detail);
+        setTimeout(function () { input.focus(); }, 50);
+    });
+
+    // Mesaj gönder: Enter gönderir, Shift+Enter yeni satır
+    function send() {
+        var text = input.value.trim();
+        if (!text) return;
+        input.value = '';
+        autosize();
+        Ajax.post(base + '/gonder', { body: text }).then(function (d) {
+            if (d.ok) { addMessage(d.message); return; }
+            if (d.reset) { resetChat(); }
+            if (d.closed) { load(true); } else { input.value = text; } // sohbet kapanmış: değerlendirme ekranına geç
+            Ajax.showMessages(d);
+        });
+    }
+    compose.addEventListener('submit', function (e) { e.preventDefault(); send(); });
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+    });
+    function autosize() {
+        input.style.height = 'auto';
+        input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+    }
+    input.addEventListener('input', function () {
+        autosize();
+        if (Date.now() - lastTypingSent > 2500 && input.value.trim()) {
+            lastTypingSent = Date.now();
+            Ajax.post(base + '/yaziyor', {});
+        }
+    });
+
+    // Sohbeti bitir
+    $('chatEnd').addEventListener('click', function () {
+        Ajax.confirm('Sohbet sonlandırılacak ve bu sohbete tekrar yazılamayacak. İsterseniz ardından yeni bir sohbet başlatabilirsiniz.', { title: 'Sohbeti bitir', ok: 'Evet, bitir', variant: 'warning' })
+            .then(function (ok) {
+                if (!ok) return;
+                Ajax.post(base + '/bitir', {}).then(function (d) {
+                    if (d.ok) applyPayload(d); else Ajax.showMessages(d);
+                });
+            });
+    });
+
+    // ------------------------------------------------------------ Değerlendirme
+    var rating = 0;
+    var stars = Array.prototype.slice.call(document.querySelectorAll('#chatStars .chat-star'));
+    function selectStars(n, preview) {
+        stars.forEach(function (s, i) {
+            s.classList.toggle('on', i < n);
+            if (!preview) s.setAttribute('aria-checked', String(i + 1 === n));
+        });
+        $('chatRateLabel').textContent = n ? RATING_LABELS[n] : 'Bir yıldız seçin';
+    }
+    stars.forEach(function (s) {
+        var v = parseInt(s.dataset.value, 10);
+        s.addEventListener('mouseenter', function () { selectStars(v, true); });
+        s.addEventListener('focus', function () { selectStars(v, true); });
+        s.addEventListener('click', function () {
+            rating = v;
+            selectStars(v);
+            $('chatRateSend').disabled = false;
+        });
+    });
+    $('chatStars').addEventListener('mouseleave', function () { selectStars(rating); });
+    $('chatStars').addEventListener('keydown', function (e) { // ok tuşlarıyla puan
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            rating = Math.min(5, Math.max(1, (rating || 0) + (e.key === 'ArrowRight' ? 1 : -1)));
+            selectStars(rating);
+            stars[rating - 1].focus();
+            $('chatRateSend').disabled = false;
+        }
+    });
+    $('chatRateSend').addEventListener('click', function () {
+        if (!rating) return;
+        var btn = this;
+        btn.disabled = true;
+        btn.classList.add('btn-loading');
+        Ajax.post(base + '/degerlendir', { rating: rating, comment: $('chatRateComment').value }).then(function (d) {
+            btn.classList.remove('btn-loading');
+            if (d.ok) { applyPayload(d); Ajax.toast(d.message, 'success'); } else { btn.disabled = false; Ajax.showMessages(d); }
+        });
+    });
+
+    // Yeni sohbet: biten sohbet bırakılır, başlatma formuna dönülür
+    $('chatNew').addEventListener('click', function () {
+        Ajax.post(base + '/yeni', {}).then(function () {
+            resetChat();
+            rating = 0;
+            $('chatRateSend').disabled = true;
+            startForm.querySelector('input[name="name"]').focus();
+        });
+    });
+
+    // İlk yükleme: devam eden sohbet varsa mesajları ve okunmamış sayısını getir
+    load(false);
+})();

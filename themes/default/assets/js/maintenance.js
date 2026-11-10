@@ -1,0 +1,45 @@
+// Bakım sayfası: harf dalgası, 3D eğim ve e-posta kopyalama (orijinal bakimda.php betiği)
+document.addEventListener('DOMContentLoaded', () => {
+    // Badge Harf Animasyonu
+    const badge = document.querySelector('.badge');
+    if (badge) {
+        const text = badge.innerText;
+        badge.innerHTML = '';
+        text.split('').forEach((char, index) => {
+            const span = document.createElement('span');
+            span.innerHTML = char === ' ' ? '&nbsp;' : char;
+            span.classList.add('letter');
+            span.style.animationDelay = `${index * 0.06}s`;
+            badge.appendChild(span);
+        });
+    }
+
+    // 3D Tilt Efekti
+    const container = document.querySelector('.container');
+    if (container) {
+        container.addEventListener('mousemove', (e) => {
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            container.style.transform = `perspective(1000px) rotateX(${-y / 35}deg) rotateY(${x / 35}deg)`;
+        });
+        container.addEventListener('mouseleave', () => {
+            container.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+        });
+    }
+
+    // E-posta Kopyalama & Toast Bildirimi
+    const copyBtn = document.getElementById('copyBtn');
+    const toast = document.getElementById('toast');
+    let toastTimeout;
+
+    if (copyBtn && toast) {
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(copyBtn.dataset.email).then(() => {
+                toast.classList.add('show');
+                clearTimeout(toastTimeout);
+                toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+            });
+        });
+    }
+});

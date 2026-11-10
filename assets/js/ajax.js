@@ -1,0 +1,392 @@
+/**
+ * AJAX SİSTEMİ — site ve panelin ortak kütüphanesi
+ * ------------------------------------------------------------------
+ * 1) Programatik kullanım:
+ *      Ajax.get(url).then(res => ...)
+ *      Ajax.post(url, { ad: 'Ali' }).then(res => { if (res.ok) ... })
+ *      Ajax.toast('Kaydedildi', 'success')     // success | danger | warning | info
+ *
+ * 2) Bildirimsel kullanım (hiç JS yazmadan):
+ *      <form method="post" action="..." data-ajax>               -> form AJAX ile gönderilir
+ *      data-ajax-success="auto|reload|redirect|remove|reset|none"  -> başarıdan sonra ne olsun
+ *      data-ajax-remove="tr"                                       -> "remove" için silinecek kapsayıcı
+ *
+ * 3) Olaylar (sayfaya özel davranış için):
+ *      form.addEventListener('ajax:success', e => { e.detail = yanıt; e.preventDefault() -> varsayılan işlemi iptal })
+ *      'ajax:error', 'ajax:complete'
+ *
+ * Sunucu her zaman { ok, message, messages[], errors{}, redirect, data } biçiminde JSON döner.
+ * CSRF belirteci <meta name="csrf-token"> etiketinden otomatik eklenir.
+ */
+(function (window, document) {
+    'use strict';
+
+    var PENDING_KEY = 'ajax:pending-toasts';
+
+    function csrfToken() {
+        var meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.getAttribute('content') : '';
+    }
+
+    function toFormData(data) {
+        if (data instanceof FormData) return data;
+        var fd = new FormData();
+        Object.keys(data || {}).forEach(function (key) {
+            var value = data[key];
+            if (Array.isArray(value)) {
+                value.forEach(function (v) { fd.append(key + '[]', v); });
+            } else if (value !== undefined && value !== null) {
+                fd.append(key, value);
+            }
+        });
+        return fd;
+    }
+
+    /**
+     * Temel istek. Ağ hatası dışında her zaman { ok, message, ... } nesnesiyle çözülür.
+     */
+    function request(url, options) {
+        options = options || {};
+        var method = (options.method || 'GET').toUpperCase();
+        var headers = Object.assign({
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }, options.headers || {});
+
+        var init = { method: method, headers: headers, credentials: 'same-origin' };
+
+        if (method === 'GET' && options.data) {
+            var params = new URLSearchParams(options.data instanceof FormData ? options.data : options.data);
+            url += (url.indexOf('?') > -1 ? '&' : '?') + params.toString();
+        } else if (method !== 'GET') {
+            headers['X-CSRF-TOKEN'] = csrfToken();
+            init.body = toFormData(options.data);
+        }
+
+        return fetch(url, init).then(function (response) {
+            var type = response.headers.get('Content-Type') || '';
+            if (type.indexOf('application/json') === -1) {
+                return {
+                    ok: false,
+                    status: response.status,
+                    message: response.status === 503
+                        ? 'Site şu anda bakımda. Lütfen daha sonra tekrar deneyin.'
+                        : 'Beklenmeyen bir yanıt alındı (' + response.status + '). Sayfayı yenileyip tekrar deneyin.',
+                    messages: [], errors: {}
+                };
+            }
+            return response.json().then(function (json) {
+                json.status = response.status;
+                json.ok = !!json.ok && response.ok;
+                json.errors = json.errors || {};
+                json.messages = json.messages || (json.message ? [{ type: json.ok ? 'success' : 'danger', message: json.message }] : []);
+                // Oturum düştüyse giriş sayfasına
+                if (response.status === 401 && json.redirect) {
+                    queueToasts(json.messages);
+                    window.location.href = json.redirect;
+                }
+                return json;
+            });
+        }).catch(function (err) {
+            if (err && err.name === 'AbortError') throw err;
+            return { ok: false, status: 0, message: 'Sunucuya ulaşılamadı. İnternet bağlantınızı kontrol edin.', messages: [], errors: {} };
+        });
+    }
+
+    // ---------------------------------------------------------------- Toast
+
+    function stack() {
+        var el = document.querySelector('.ajax-toast-stack');
+        if (!el) {
+            el = document.createElement('div');
+            el.className = 'ajax-toast-stack';
+            el.setAttribute('aria-live', 'polite');
+            document.body.appendChild(el);
+        }
+        return el;
+    }
+
+    var ICONS = {
+        success: '<polyline points="20 6 9 17 4 12"></polyline>',
+        danger: '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>',
+        warning: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>',
+        info: '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>'
+    };
+
+    function toast(message, type, timeout) {
+        if (!message) return;
+        type = ICONS[type] ? type : 'info';
+        var el = document.createElement('div');
+        el.className = 'ajax-toast ajax-toast-' + type;
+        el.setAttribute('role', type === 'danger' ? 'alert' : 'status');
+        el.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ICONS[type] + '</svg><span></span><button type="button" aria-label="Kapat">&times;</button>';
+        el.querySelector('span').textContent = message;
+        var close = function () {
+            el.classList.remove('show');
+            setTimeout(function () { el.remove(); }, 300);
+        };
+        el.querySelector('button').addEventListener('click', close);
+        stack().appendChild(el);
+        requestAnimationFrame(function () { el.classList.add('show'); });
+        setTimeout(close, timeout || (type === 'danger' ? 7000 : 4000));
+    }
+
+    function showMessages(res) {
+        if (res.messages && res.messages.length) {
+            res.messages.forEach(function (m) { toast(m.message, m.type); });
+        } else if (res.message) {
+            toast(res.message, res.ok ? 'success' : 'danger');
+        }
+    }
+
+    /** Sayfa değişecekse mesajları sakla, yeni sayfada göster */
+    function queueToasts(messages) {
+        try { sessionStorage.setItem(PENDING_KEY, JSON.stringify(messages || [])); } catch (e) { /* yoksay */ }
+    }
+
+    function flushQueuedToasts() {
+        try {
+            var raw = sessionStorage.getItem(PENDING_KEY);
+            if (!raw) return;
+            sessionStorage.removeItem(PENDING_KEY);
+            JSON.parse(raw).forEach(function (m) { toast(m.message, m.type); });
+        } catch (e) { /* yoksay */ }
+    }
+
+    function navigate(url, res) {
+        queueToasts(res && res.messages);
+        window.location.href = url;
+    }
+
+    function sameLocation(url) {
+        try {
+            var a = new URL(url, window.location.href);
+            return a.pathname.replace(/\/+$/, '') === window.location.pathname.replace(/\/+$/, '');
+        } catch (e) { return false; }
+    }
+
+    // ---------------------------------------------------------------- Onay penceresi
+    /**
+     * Tarayıcının confirm() penceresi yerine temaya uygun onay penceresi.
+     *   Ajax.confirm('Silinsin mi?', { title: 'Mesajı sil', ok: 'Sil', danger: true }).then(ok => ...)
+     */
+    var CONFIRM_ICONS = {
+        danger: '<polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line>',
+        warning: ICONS.warning,
+        info: ICONS.info
+    };
+
+    function confirmDialog(message, opts) {
+        opts = opts || {};
+        var variant = opts.danger ? 'danger' : (opts.variant || 'info');
+        return new Promise(function (resolve) {
+            var previous = document.activeElement;
+            var wrap = document.createElement('div');
+            wrap.className = 'ajax-confirm ajax-confirm-' + variant;
+            wrap.setAttribute('role', 'alertdialog');
+            wrap.setAttribute('aria-modal', 'true');
+            wrap.innerHTML =
+                '<div class="ajax-confirm-box">' +
+                    '<span class="ajax-confirm-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (CONFIRM_ICONS[variant] || ICONS.info) + '</svg></span>' +
+                    '<h3 class="ajax-confirm-title"></h3>' +
+                    '<p class="ajax-confirm-text"></p>' +
+                    '<div class="ajax-confirm-actions">' +
+                        '<button type="button" class="ajax-confirm-cancel"></button>' +
+                        '<button type="button" class="ajax-confirm-ok"></button>' +
+                    '</div>' +
+                '</div>';
+            wrap.querySelector('.ajax-confirm-title').textContent = opts.title || (variant === 'danger' ? 'Emin misiniz?' : 'Onaylıyor musunuz?');
+            wrap.querySelector('.ajax-confirm-text').textContent = message;
+            wrap.querySelector('.ajax-confirm-cancel').textContent = opts.cancel || 'Vazgeç';
+            wrap.querySelector('.ajax-confirm-ok').textContent = opts.ok || (variant === 'danger' ? 'Evet, sil' : 'Evet, devam et');
+
+            var done = function (result) {
+                document.removeEventListener('keydown', onKey, true);
+                wrap.classList.remove('show');
+                setTimeout(function () { wrap.remove(); }, 200);
+                if (previous && previous.focus) previous.focus({ preventScroll: true });
+                resolve(result);
+            };
+            var onKey = function (e) {
+                if (e.key === 'Escape') { e.preventDefault(); done(false); }
+                if (e.key === 'Tab') { // odak pencere içinde kalsın
+                    var btns = wrap.querySelectorAll('button');
+                    var first = btns[0], last = btns[btns.length - 1];
+                    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+                    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+                }
+            };
+            wrap.addEventListener('click', function (e) { if (e.target === wrap) done(false); });
+            wrap.querySelector('.ajax-confirm-cancel').addEventListener('click', function () { done(false); });
+            wrap.querySelector('.ajax-confirm-ok').addEventListener('click', function () { done(true); });
+            document.addEventListener('keydown', onKey, true);
+
+            document.body.appendChild(wrap);
+            requestAnimationFrame(function () { wrap.classList.add('show'); });
+            // Silmede güvenli seçenek (Vazgeç) odaklı başlar
+            (variant === 'danger' ? wrap.querySelector('.ajax-confirm-cancel') : wrap.querySelector('.ajax-confirm-ok')).focus();
+        });
+    }
+
+    /**
+     * data-confirm="Mesaj" olan düğme / bağlantılar tıklanınca onay penceresi açılır.
+     * İsteğe bağlı: data-confirm-title, data-confirm-ok, data-confirm-variant="danger|warning|info"
+     * (Silme düğmeleri — kırmızı düğmeler veya title="Sil" — otomatik olarak kırmızı görünür.)
+     */
+    document.addEventListener('click', function (e) {
+        var el = e.target.closest('[data-confirm]');
+        if (!el) return;
+        if (el.dataset.confirmed === '1') { delete el.dataset.confirmed; return; }
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        var message = el.getAttribute('data-confirm');
+        var variant = el.dataset.confirmVariant
+            || (el.matches('.btn-outline-danger, .btn-danger, [title="Sil"]') || /\bsil|kaldır/i.test(message) ? 'danger' : 'warning');
+        confirmDialog(message, {
+            title: el.dataset.confirmTitle,
+            ok: el.dataset.confirmOk,
+            danger: variant === 'danger',
+            variant: variant
+        }).then(function (ok) {
+            if (!ok) return;
+            el.dataset.confirmed = '1';
+            el.click(); // asıl işlemi (form gönderimi / bağlantı) yeniden tetikle
+        });
+    }, true);
+
+    // ---------------------------------------------------------------- Form yardımcıları
+
+    function setLoading(form, on) {
+        form.classList.toggle('is-loading', on);
+        form.setAttribute('aria-busy', on ? 'true' : 'false');
+        form.querySelectorAll('button[type="submit"], button:not([type]), input[type="submit"]').forEach(function (btn) {
+            btn.disabled = on;
+            btn.classList.toggle('btn-loading', on);
+        });
+    }
+
+    function clearErrors(form) {
+        form.querySelectorAll('.is-invalid').forEach(function (el) { el.classList.remove('is-invalid'); });
+        form.querySelectorAll('.ajax-field-error').forEach(function (el) { el.remove(); });
+    }
+
+    function showErrors(form, errors) {
+        var first = null;
+        Object.keys(errors || {}).forEach(function (name) {
+            var field = form.querySelector('[name="' + name + '"], [name="' + name + '[]"]');
+            if (!field) return;
+            field.classList.add('is-invalid');
+            var msg = document.createElement('div');
+            msg.className = 'ajax-field-error invalid-feedback d-block';
+            msg.textContent = errors[name];
+            var anchor = field.closest('.input-group, .choice-grid, .form-check') || field;
+            anchor.insertAdjacentElement('afterend', msg);
+            if (!first) first = field;
+        });
+        if (first) {
+            first.focus({ preventScroll: true });
+            first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    function emit(el, name, detail) {
+        var ev = new CustomEvent(name, { bubbles: true, cancelable: true, detail: detail });
+        return el.dispatchEvent(ev); // false => preventDefault çağrıldı
+    }
+
+    function submitForm(form, submitter) {
+        if (form.classList.contains('is-loading')) return;
+
+        var data = new FormData(form);
+        if (submitter && submitter.name) data.append(submitter.name, submitter.value);
+
+        var method = (form.getAttribute('method') || 'GET').toUpperCase();
+        var action = form.getAttribute('action') || window.location.href;
+
+        clearErrors(form);
+        setLoading(form, true);
+        emit(form, 'ajax:before', { form: form });
+
+        request(action, { method: method, data: data }).then(function (res) {
+            setLoading(form, false);
+
+            if (!res.ok) {
+                showErrors(form, res.errors);
+                if (emit(form, 'ajax:error', res)) showMessages(res);
+                emit(form, 'ajax:complete', res);
+                return;
+            }
+
+            if (!emit(form, 'ajax:success', res)) {
+                emit(form, 'ajax:complete', res);
+                return; // sayfa kendi işini yaptı
+            }
+
+            var mode = form.getAttribute('data-ajax-success') || 'auto';
+            switch (mode) {
+                case 'reload':
+                    navigate(window.location.href, res);
+                    break;
+                case 'redirect':
+                    if (res.redirect) { navigate(res.redirect, res); } else { showMessages(res); }
+                    break;
+                case 'remove':
+                    showMessages(res);
+                    var target = form.closest(form.getAttribute('data-ajax-remove') || 'tr, .ajax-item');
+                    if (target) {
+                        target.classList.add('ajax-removing');
+                        setTimeout(function () {
+                            // DataTable içindeyse satırı tablonun API'siyle kaldır (sayfalama / sayılar doğru kalsın)
+                            var tableEl = target.closest('table');
+                            var $ = window.jQuery;
+                            if ($ && $.fn.dataTable && tableEl && $.fn.dataTable.isDataTable(tableEl)) {
+                                $(tableEl).DataTable().row(target).remove().draw(false);
+                            } else {
+                                target.remove();
+                            }
+                            emit(document, 'ajax:removed', res);
+                        }, 300);
+                    }
+                    break;
+                case 'reset':
+                    showMessages(res);
+                    form.reset();
+                    break;
+                case 'none':
+                    showMessages(res);
+                    break;
+                default: // auto: farklı bir sayfaya yönlendiriyorsa git, aynı sayfaysa kal
+                    if (res.redirect && !sameLocation(res.redirect)) {
+                        navigate(res.redirect, res);
+                    } else {
+                        showMessages(res);
+                    }
+            }
+            emit(form, 'ajax:complete', res);
+        });
+    }
+
+    // Tüm data-ajax formlarını yakala (sonradan eklenen formlar dahil)
+    document.addEventListener('submit', function (e) {
+        var form = e.target;
+        if (!(form instanceof HTMLFormElement) || !form.hasAttribute('data-ajax')) return;
+        if (e.defaultPrevented) return; // örn. onay sorusu reddedildi
+        e.preventDefault();
+        submitForm(form, e.submitter || null);
+    });
+
+    document.addEventListener('DOMContentLoaded', flushQueuedToasts);
+
+    window.Ajax = {
+        request: request,
+        get: function (url, data) { return request(url, { method: 'GET', data: data }); },
+        post: function (url, data) { return request(url, { method: 'POST', data: data }); },
+        submit: submitForm,
+        toast: toast,
+        confirm: confirmDialog,
+        showMessages: showMessages,
+        navigate: navigate,
+        csrfToken: csrfToken
+    };
+})(window, document);

@@ -1,0 +1,164 @@
+/* ==========================================================
+   Bakım sayfası — orijinal bakimda.php stilleri
+   ========================================================== */
+:root {
+    --bg-color: #0b0f19;
+    --card-bg: rgba(11, 15, 25, 0.65);
+    --border-color: rgba(255, 255, 255, 0.12);
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --accent-color: #38bdf8;
+
+    /* Marka Renkleri */
+    --instagram-color: #e1306c;
+    --facebook-color: #1877f2;
+    --x-color: #ffffff;
+    --youtube-color: #ff0000;
+    --github-color: #ffffff;
+    --linkedin-color: #0a66c2;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Arka Plan Görseli */
+.bg-image {
+    position: absolute; inset: 0;
+    /* Önce sitenizdeki kopya (assets/img/arka-plan.jpg); yoksa internetteki resim — ana siteyle aynı */
+    background-image: url('../img/arka-plan.jpg'), url('https://applescoop.org/image/wallpapers/mac/nightsky-with-big-blue-and-white-stars-22-10-2024-1729665047-hd-wallpaper.png');
+    background-size: cover; background-position: center; background-repeat: no-repeat;
+    z-index: 0;
+}
+
+/* Karartma ve Blur Katmanı */
+.bg-overlay {
+    position: absolute; inset: 0;
+    background: radial-gradient(circle, rgba(11, 15, 25, 0.4) 0%, rgba(11, 15, 25, 0.85) 100%);
+    z-index: 0;
+}
+
+.container {
+    position: relative; z-index: 1;
+    max-width: 680px; width: 90%;
+    padding: 3.5rem 2.5rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    text-align: center;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+    transition: transform 0.1s ease-out;
+    will-change: transform;
+}
+
+/* Badge ve Dynamic Border Animasyonu */
+.badge {
+    display: inline-flex; align-items: center;
+    padding: 0.4rem 1.1rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(244, 63, 94, 0.4);
+    border-radius: 50px;
+    font-size: 0.85rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+    margin-bottom: 2rem;
+    animation: badgeBorderWave 1.5s infinite ease-in-out;
+}
+
+.letter { display: inline-block; color: #f43f5e; animation: waveColor 1.5s infinite ease-in-out; }
+
+@keyframes waveColor {
+    0%   { color: #f43f5e; transform: translateY(0); }
+    33%  { color: #38bdf8; transform: translateY(-1px); }
+    66%  { color: #a855f7; transform: translateY(0); }
+    100% { color: #f43f5e; }
+}
+
+@keyframes badgeBorderWave {
+    0%   { border-color: rgba(244, 63, 94, 0.5);  box-shadow: 0 0 15px rgba(244, 63, 94, 0.25); }
+    33%  { border-color: rgba(56, 189, 248, 0.5); box-shadow: 0 0 15px rgba(56, 189, 248, 0.25); }
+    66%  { border-color: rgba(168, 85, 247, 0.5); box-shadow: 0 0 15px rgba(168, 85, 247, 0.25); }
+    100% { border-color: rgba(244, 63, 94, 0.5);  box-shadow: 0 0 15px rgba(244, 63, 94, 0.25); }
+}
+
+.brand-name {
+    font-size: 2.8rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 1rem;
+    background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    word-break: break-word;
+}
+
+.description { font-size: 1.05rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 2rem; font-weight: 300; }
+
+.contact-box {
+    display: inline-flex; align-items: center; gap: 0.75rem;
+    padding: 0.9rem 1.8rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-primary);
+    text-decoration: none; font-size: 0.95rem; font-weight: 500;
+    cursor: pointer; transition: all 0.3s ease;
+}
+.contact-box:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.3); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); }
+.contact-box svg { width: 18px; height: 18px; fill: var(--accent-color); }
+
+/* Sosyal Medya Stilleri */
+.social-links { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
+.social-links:empty { display: none; }
+
+.social-icon {
+    display: flex; align-items: center; justify-content: center;
+    width: 42px; height: 42px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    color: var(--text-secondary);
+    transition: all 0.3s ease; text-decoration: none;
+}
+.social-icon svg { width: 18px; height: 18px; fill: currentColor; transition: fill 0.3s ease; }
+.social-icon:hover { transform: translateY(-3px); }
+
+.social-icon.instagram:hover { color: var(--instagram-color); border-color: var(--instagram-color); background: rgba(225, 48, 108, 0.12); box-shadow: 0 6px 20px rgba(225, 48, 108, 0.35); }
+.social-icon.facebook:hover  { color: var(--facebook-color);  border-color: var(--facebook-color);  background: rgba(24, 119, 242, 0.12); box-shadow: 0 6px 20px rgba(24, 119, 242, 0.35); }
+.social-icon.x-twitter:hover { color: var(--x-color);         border-color: var(--x-color);         background: rgba(255, 255, 255, 0.12); box-shadow: 0 6px 20px rgba(255, 255, 255, 0.25); }
+.social-icon.youtube:hover   { color: var(--youtube-color);   border-color: var(--youtube-color);   background: rgba(255, 0, 0, 0.12);    box-shadow: 0 6px 20px rgba(255, 0, 0, 0.35); }
+.social-icon.github:hover    { color: var(--github-color);    border-color: var(--github-color);    background: rgba(255, 255, 255, 0.12); box-shadow: 0 6px 20px rgba(255, 255, 255, 0.25); }
+.social-icon.linkedin:hover  { color: var(--linkedin-color);  border-color: var(--linkedin-color);  background: rgba(10, 102, 194, 0.12); box-shadow: 0 6px 20px rgba(10, 102, 194, 0.35); }
+
+.footer-text { margin-top: 2.5rem; font-size: 0.8rem; color: rgba(148, 163, 184, 0.6); }
+.footer-text a { color: var(--text-secondary); text-decoration: none; font-weight: 500; transition: color 0.3s ease; }
+.footer-text a:hover { color: var(--accent-color); text-decoration: underline; }
+
+/* Toast Bildirim Stili */
+.toast {
+    position: fixed; bottom: -60px; left: 50%; transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.9); color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    padding: 0.75rem 1.5rem; border-radius: 50px;
+    font-size: 0.9rem; font-weight: 600;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    display: flex; align-items: center; gap: 0.5rem;
+    z-index: 100;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    opacity: 0; pointer-events: none;
+}
+.toast.show { bottom: 30px; opacity: 1; }
+.toast svg { width: 16px; height: 16px; fill: #38bdf8; }
+
+@media (max-width: 480px) {
+    .container { padding: 2.5rem 1.5rem; }
+    .brand-name { font-size: 2.1rem; }
+    .description { font-size: 0.95rem; }
+    .contact-box { font-size: 0.9rem; padding: 0.8rem 1.4rem; }
+}

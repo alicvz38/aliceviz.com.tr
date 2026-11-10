@@ -1,0 +1,27 @@
+# ------------------------------------------------------------
+# Web Sitem - Apache ayarları
+# ------------------------------------------------------------
+Options -Indexes
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Hassas klasörlere doğrudan erişimi engelle
+    RewriteRule ^(app|config|routes|storage|database|cron|realtime)(/|$) - [F,L]
+
+    # Tema klasöründeki PHP dosyaları doğrudan çalıştırılamaz (yalnızca assets açık)
+    RewriteRule ^themes/.+\.php$ - [F,L]
+
+    # Gizli dosyalar (.env, .git vb.)
+    RewriteRule (^|/)\.(?!well-known) - [F,L]
+
+    # Var olan dosya / klasör değilse index.php'ye yönlendir
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+<FilesMatch "\.(sql|md|lock|log|cache)$">
+    Require all denied
+</FilesMatch>

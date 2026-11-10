@@ -1,0 +1,41 @@
+# ------------------------------------------------------------
+# GİZLİ BİLGİLER — asla GitHub'a yüklenmez
+# ------------------------------------------------------------
+# Veritabanı şifresi vb. (depoda config/config.example.php bulunur)
+/config/config.php
+# Canlı bağlantı (WebSocket) imza anahtarı
+/storage/realtime.key
+
+# ------------------------------------------------------------
+# Çalışma zamanında oluşan dosyalar
+# ------------------------------------------------------------
+/storage/cache/*.cache
+/storage/installed.lock
+/storage/migrations.json
+/storage/*.lock
+/storage/*.log
+/storage/*.log.1
+/storage/realtime.json
+/storage/realtime.stop
+
+# Yüklenen görseller (proje kapakları, profil fotoğrafı)
+/uploads/projects/*
+!/uploads/projects/.gitkeep
+
+# ------------------------------------------------------------
+# Ücretli panel şablonu (Equation — ThemeForest lisansı dağıtıma izin vermez)
+# Kendi satın aldığınız kopyayı proje köküne "equation-v2.2.0" adıyla koyun.
+# ------------------------------------------------------------
+/equation-v2.2.0/
+
+# ------------------------------------------------------------
+# Editör / sistem
+# ------------------------------------------------------------
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Ayrı depolar / ilgisiz klasörler
+/Creator Suite/
