@@ -779,3 +779,13 @@ button.contact-line, a.contact-line { cursor: pointer; }
 
 /* Panelden yüklenen logo (Site Ayarları > Görünüm) */
 .brand-logo { display: block; height: 34px; width: auto; max-width: 180px; object-fit: contain; border-radius: 8px; }
+
+/* Kayan sayaç (kilometre sayacı): sayı artarken rakamlar alttan, azalırken üstten gelir (app.js) */
+.odo { display: inline-flex; height: 1.15em; line-height: 1.15em; overflow: hidden; vertical-align: bottom; }
+.odo-col { display: inline-block; width: 1ch; height: 1.15em; overflow: hidden; transition: width .45s ease, opacity .45s ease; }
+.odo-col.is-off { width: 0; opacity: 0; }
+.odo-strip { display: flex; flex-direction: column; transition: transform 1.2s cubic-bezier(.22, .9, .25, 1); will-change: transform; }
+.odo-strip span { display: block; height: 1.15em; line-height: 1.15em; text-align: center; }
+.odo-suffix { display: inline-block; line-height: 1.15em; vertical-align: bottom; }
+[data-count] { font-variant-numeric: tabular-nums; }
+@media print { .odo-strip { transition: none !important; } }

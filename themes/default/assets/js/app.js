@@ -50,25 +50,69 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Sayaç animasyonu
+    // Sayaç animasyonu: kilometre sayacı gibi kayan rakamlar.
+    // Sayı artarken yeni rakamlar alttan, azalırken üstten gelir.
+    // Ekrana girince 0'dan hedefe çıkar, ekrandan çıkınca 0'a iner (tekrar görünce yeniden sayar).
     const counters = document.querySelectorAll('[data-count]');
-    if ('IntersectionObserver' in window && counters.length) {
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const buildOdometer = (el) => {
+        const target = Math.max(0, parseInt(el.dataset.count, 10) || 0);
+        const width = String(target).length;
+        el.setAttribute('aria-label', target + (el.dataset.suffix || ''));
+        el.textContent = '';
+        const odo = document.createElement('span');
+        odo.className = 'odo';
+        odo.setAttribute('aria-hidden', 'true');
+        for (let i = 0; i < width; i++) {
+            const col = document.createElement('span');
+            col.className = 'odo-col';
+            const strip = document.createElement('span');
+            strip.className = 'odo-strip';
+            for (let d = 0; d <= 9; d++) {
+                const digit = document.createElement('span');
+                digit.textContent = d;
+                strip.appendChild(digit);
+            }
+            col.appendChild(strip);
+            odo.appendChild(col);
+        }
+        el.appendChild(odo);
+        if (el.dataset.suffix) {
+            const suffix = document.createElement('span');
+            suffix.className = 'odo-suffix';
+            suffix.setAttribute('aria-hidden', 'true');
+            suffix.textContent = el.dataset.suffix;
+            el.appendChild(suffix);
+        }
+        return { el, target, cols: [...odo.children] };
+    };
+    const setOdometer = (o, value) => {
+        const digits = String(value).padStart(o.cols.length, '0');
+        const firstSignificant = digits.search(/[1-9]/);
+        o.cols.forEach((col, i) => {
+            // Baştaki sıfırlar gizlenir (ör. 12 -> 0 olurken "00" değil "0" görünür)
+            col.classList.toggle('is-off', i < o.cols.length - 1 && (firstSignificant === -1 || i < firstSignificant));
+            // Sağdaki basamaklar biraz daha uzun döner: daha doğal bir sayaç hissi
+            col.firstChild.style.transitionDuration = (1 + i * 0.25) + 's';
+            col.firstChild.style.transform = 'translateY(' + (-Number(digits[i]) * 10) + '%)';
+        });
+    };
+    if (counters.length && !reduceMotion && 'IntersectionObserver' in window) {
+        const odometers = new Map();
+        counters.forEach((el) => {
+            const o = buildOdometer(el);
+            setOdometer(o, 0);
+            odometers.set(el, o);
+        });
         const io = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {
-                if (!entry.isIntersecting) return;
-                const el = entry.target;
-                const target = parseInt(el.dataset.count, 10) || 0;
-                const start = performance.now();
-                const step = (now) => {
-                    const p = Math.min((now - start) / 900, 1);
-                    el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
-                    if (p < 1) requestAnimationFrame(step);
-                };
-                requestAnimationFrame(step);
-                io.unobserve(el);
+                const o = odometers.get(entry.target);
+                setOdometer(o, entry.isIntersecting ? o.target : 0);
             });
         }, { threshold: 0.4 });
         counters.forEach((c) => io.observe(c));
+        // Yazdır / PDF: ekranda görünmeyen sayılar 0'da kalmasın
+        window.addEventListener('beforeprint', () => odometers.forEach((o) => setOdometer(o, o.target)));
     }
 
     // Kartlar ve yetenek çubukları görünür olunca yumuşak giriş

@@ -44,10 +44,10 @@ $initials = implode('', array_map(static fn ($p) => mb_strtoupper(mb_substr($p, 
 
         <!-- Rakamlar -->
         <dl class="cv-stats">
-            <?php if ($stats['years']): ?><div class="glass"><dd><?= (int) $stats['years'] ?>+</dd><dt>Yıl deneyim</dt></div><?php endif; ?>
-            <div class="glass"><dd><?= (int) $stats['projects'] ?></dd><dt>Açık kaynak proje</dt></div>
-            <div class="glass"><dd><?= count($items['skill']) ?></dd><dt>Teknoloji</dt></div>
-            <div class="glass"><dd><?= (int) $stats['stars'] ?></dd><dt>GitHub yıldızı</dt></div>
+            <?php if ($stats['years']): ?><div class="glass"><dd data-count="<?= (int) $stats['years'] ?>" data-suffix="+"><?= (int) $stats['years'] ?>+</dd><dt>Yıl deneyim</dt></div><?php endif; ?>
+            <div class="glass"><dd data-count="<?= (int) $stats['projects'] ?>"><?= (int) $stats['projects'] ?></dd><dt>Açık kaynak proje</dt></div>
+            <div class="glass"><dd data-count="<?= count($items['skill']) ?>"><?= count($items['skill']) ?></dd><dt>Teknoloji</dt></div>
+            <div class="glass"><dd data-count="<?= (int) $stats['stars'] ?>"><?= (int) $stats['stars'] ?></dd><dt>GitHub yıldızı</dt></div>
         </dl>
 
         <div class="cv-grid">
