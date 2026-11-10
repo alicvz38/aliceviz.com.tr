@@ -678,6 +678,8 @@ button.contact-line, a.contact-line { cursor: pointer; }
 .footer-col a, .footer-col span, .footer-link { color: var(--text-2); display: inline-flex; align-items: center; gap: .4rem; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; word-break: break-all; }
 .footer-col span { cursor: default; }
 .footer-col a:hover, .footer-link:hover { color: var(--accent); }
+.footer-col a.footer-wa svg { color: #25d366; }
+.footer-col a.footer-wa:hover { color: #25d366; }
 
 /* Yazdırma: özgeçmiş temiz bir CV olarak çıksın */
 /* Özgeçmiş — Yazdır / PDF: tek A4 sayfasına sığan sıkı, açık renkli düzen */
