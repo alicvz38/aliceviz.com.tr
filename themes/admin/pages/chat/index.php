@@ -11,14 +11,14 @@ $s = static fn (string $k, string $d = '') => $settings[$k] ?? $d;
 ?>
 <?php $this->start('pageActions') ?>
 <div class="d-flex align-items-center gap-2">
-    <span class="badge <?= $realtime ? 'badge-light-success' : 'badge-light-warning' ?>" title="<?= $realtime ? 'Mesajlar WebSocket ile anında iletiliyor' : 'Canlı sunucu kapalı: mesajlar birkaç saniyede bir kontrol ediliyor' ?>">
-        <?= $realtime ? 'Anlık (WebSocket)' : 'Yoklama modu' ?>
+    <span class="badge <?= $realtime ? 'badge-light-success' : (App\Support\Realtime::installed() ? 'badge-light-warning' : 'badge-light-info') ?>" title="<?= $realtime ? 'Mesajlar WebSocket ile anında iletiliyor' : (App\Support\Realtime::installed() ? 'Canlı sunucu kapalı: mesajlar birkaç saniyede bir kontrol ediliyor' : 'Mesajlar birkaç saniyede bir otomatik kontrol ediliyor') ?>">
+        <?= $realtime ? 'Anlık (WebSocket)' : (App\Support\Realtime::installed() ? 'Yoklama modu' : 'Otomatik yenileme') ?>
     </span>
     <a href="<?= e(url()) ?>" target="_blank" class="btn btn-outline-secondary btn-sm"><?= icon('external-link', 16) ?> Sitede gör</a>
 </div>
 <?php $this->stop() ?>
 
-<?php if (!$realtime): ?>
+<?php if (!$realtime && App\Support\Realtime::installed()): ?>
     <div class="alert alert-light-warning mb-4">
         <?= icon('zap') ?> Canlı sunucu kapalı; sohbet yine çalışır ama mesajlar 2-3 saniye gecikmeyle gelir.
         Anlık iletim için <code>realtime\baslat.bat</code> dosyasını çalıştırın.

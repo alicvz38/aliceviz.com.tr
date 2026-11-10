@@ -70,6 +70,15 @@ final class Realtime
         return (int) $m[1];
     }
 
+    /**
+     * Bu kurulumda WebSocket sunucusu var mı? (realtime/ klasörü yalnızca yerel/VPS kurulumunda bulunur;
+     * paylaşımlı hostinge yüklenmez, orada sistem kendiliğinden yoklama ile çalışır.)
+     */
+    public static function installed(): bool
+    {
+        return is_file(ROOT_PATH . '/realtime/server.php');
+    }
+
     public static function statusFile(): string
     {
         return STORAGE_PATH . '/realtime.json';

@@ -183,6 +183,9 @@ $presets = [
                         Posta kutusu dinleme: <strong><?= e(['idle' => 'açık (anlık)', 'error' => 'hata — yeniden deneniyor', 'off' => 'kapalı'][$rt['imap']] ?? $rt['imap']) ?></strong><br>
                         Başlangıç: <?= e(time_ago(date('Y-m-d H:i:s', (int) $rt['started']))) ?>
                     </p>
+                <?php elseif (!App\Support\Realtime::installed()): ?>
+                    <p class="mb-2"><span class="badge badge-light-info">Otomatik yenileme</span></p>
+                    <p class="small text-muted mb-2">Paylaşımlı hostingde sürekli açık kalan WebSocket sunucusu çalıştırılamaz; panel yeni e-postaları ve sohbet mesajlarını birkaç saniyede bir kendiliğinden kontrol eder. E-postaların sunucuya çekilmesi için yukarıdaki <strong>cron</strong> görevini cPanel'de kurmanız yeterlidir.</p>
                 <?php else: ?>
                     <p class="mb-2"><span class="badge badge-light-dark">Kapalı</span></p>
                     <p class="small text-muted mb-2">Sunucu kapalıyken panel 30 saniyede bir kontrol eder. Anlık bildirim için
