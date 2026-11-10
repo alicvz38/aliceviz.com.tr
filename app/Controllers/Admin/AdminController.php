@@ -62,7 +62,11 @@ abstract class AdminController extends Controller
             ['label' => 'Özgeçmiş (CV)', 'icon' => 'briefcase', 'path' => 'ozgecmis'],
 
             ['heading' => 'SİSTEM'],
-            ['label' => 'Site Ayarları', 'icon' => 'settings', 'path' => 'ayarlar'],
+            ['label' => 'Site Ayarları', 'icon' => 'settings', 'path' => 'ayarlar', 'children' => array_map(
+                static fn (string $key, array $sec) => ['label' => $sec[0], 'path' => $key === 'genel' ? 'ayarlar' : 'ayarlar/' . $key, 'exact' => true],
+                array_keys(SettingController::SECTIONS),
+                SettingController::SECTIONS
+            )],
             ['label' => 'Hesabım', 'icon' => 'user', 'path' => 'hesabim'],
             ['label' => 'Siteyi Görüntüle', 'icon' => 'external-link', 'url' => url(), 'target' => '_blank'],
         ];

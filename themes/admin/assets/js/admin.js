@@ -77,8 +77,20 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!file) return;
             preview.src = URL.createObjectURL(file);
             preview.classList.remove('d-none');
+            var hide = input.dataset.hide && document.querySelector(input.dataset.hide);
+            if (hide) hide.hidden = true;
         });
     });
+
+    // Görünüm: logo yanında alan adı önizlemesi
+    var logoText = document.getElementById('logo_show_text');
+    if (logoText) {
+        logoText.addEventListener('change', function () {
+            var t = document.getElementById('logoDemoText');
+            var hasLogo = !document.getElementById('logoPreview').classList.contains('d-none');
+            if (t) t.hidden = hasLogo && !logoText.checked;
+        });
+    }
 
     // GitHub: tümünü seç
     var all = document.getElementById('selectAllRepos');

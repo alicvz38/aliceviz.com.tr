@@ -74,6 +74,31 @@ function custom_favicon(): ?array
     return ['url' => url($path) . '?v=' . filemtime(ROOT_PATH . '/' . $path), 'type' => $types[$ext] ?? 'image/png'];
 }
 
+/** Panelden yüklenen logonun adresi (yoksa null) */
+function custom_logo(): ?string
+{
+    $path = (string) setting('site_logo', '');
+    if ($path === '' || !is_file(ROOT_PATH . '/' . $path)) {
+        return null;
+    }
+    return url($path) . '?v=' . filemtime(ROOT_PATH . '/' . $path);
+}
+
+/** Logo işareti: yüklenen logo, yoksa varsayılan </> kutusu ($class: site 'brand-mark', panel 'site-brand-mark') */
+function brand_mark(string $class = 'brand-mark'): string
+{
+    if ($logo = custom_logo()) {
+        return '<img src="' . e($logo) . '" class="brand-logo" alt="' . e((string) setting('site_title', 'Logo')) . '">';
+    }
+    return '<span class="' . e($class) . '">' . icon('code', 18) . '</span>';
+}
+
+/** Logonun yanında alan adı / site adı yazısı gösterilsin mi (panel > Görünüm) */
+function brand_text_visible(): bool
+{
+    return custom_logo() === null || setting('logo_show_text', '1') === '1';
+}
+
 /** Sekme ikonu etiketleri: panelden yüklenen favicon, yoksa varsayılan logo (assets/img) */
 function favicon_tags(): string
 {

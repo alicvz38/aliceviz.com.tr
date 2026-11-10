@@ -115,9 +115,12 @@ $router->group($admin, ['auth'], function ($r) {
     $r->post('mesajlar/{id}/okundu', [Admin\MessageController::class, 'markRead']);
     $r->post('mesajlar/{id}/sil', [Admin\MessageController::class, 'destroy']);
 
+    // Site Ayarları: her bölüm ayrı sayfa (genel, iletisim, sosyal, github, gorunum, bakim)
     $r->get('ayarlar', [Admin\SettingController::class, 'index']);
     $r->post('ayarlar', [Admin\SettingController::class, 'update']);
     $r->post('ayarlar/onbellek', [Admin\SettingController::class, 'clearCache']);
+    $r->get('ayarlar/{bolum}', [Admin\SettingController::class, 'index']);
+    $r->post('ayarlar/{bolum}', [Admin\SettingController::class, 'update']);
 
     $r->get('hesabim', [Admin\AccountController::class, 'index']);
     $r->post('hesabim', [Admin\AccountController::class, 'update']);

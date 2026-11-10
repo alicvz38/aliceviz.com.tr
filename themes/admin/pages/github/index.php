@@ -43,7 +43,7 @@ $langColor = static fn (?string $lang) => (new App\Models\Project(['language' =>
             <?php if ($error): ?>
                 <div class="alert alert-light-warning mb-0">
                     <?= e($error) ?>
-                    <?php if (!$username): ?> <a href="<?= e(admin_url('ayarlar')) ?>" class="alert-link">Ayarlara git &rarr;</a><?php endif; ?>
+                    <?php if (!$username): ?> <a href="<?= e(admin_url('ayarlar/github')) ?>" class="alert-link">Ayarlara git &rarr;</a><?php endif; ?>
                 </div>
             <?php elseif (!$repos): ?>
                 <p class="text-muted mb-0">Bu kullanıcının herkese açık deposu bulunamadı.</p>

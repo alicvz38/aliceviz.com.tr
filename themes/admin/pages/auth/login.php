@@ -8,7 +8,7 @@ $this->layout('auth');
             <?= csrf_field() ?>
             <div class="col-md-12 mb-3">
                 <div class="d-flex align-items-center gap-2 mb-3">
-                    <span class="site-brand-mark"><?= icon('code', 18) ?></span>
+                    <?= brand_mark('site-brand-mark') ?>
                     <strong class="text-white"><?= e(setting('site_domain', '') ?: $siteTitle) ?></strong>
                 </div>
                 <h2>Giriş Yap</h2>

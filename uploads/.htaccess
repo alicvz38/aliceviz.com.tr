@@ -6,3 +6,7 @@ Options -Indexes
 <IfModule mod_php.c>
     php_flag engine off
 </IfModule>
+# Yüklenen dosyaları yalnızca bildirilen türüyle (resim) yorumla
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+</IfModule>

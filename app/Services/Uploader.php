@@ -54,22 +54,38 @@ class Uploader
     /** Sekme ikonu (favicon): PNG, ICO, WEBP veya JPG, en fazla 1 MB → uploads/site/ */
     public function favicon(array $file): string
     {
+        return $this->siteImage($file, 'favicon', [
+            'image/png' => 'png', 'image/x-icon' => 'ico', 'image/vnd.microsoft.icon' => 'ico',
+            'image/webp' => 'webp', 'image/jpeg' => 'jpg',
+        ], 'Favicon için PNG, ICO, WEBP veya JPG görsel yükleyin.');
+    }
+
+    /** Site logosu: PNG, WEBP, JPG veya GIF, en fazla 1 MB → uploads/site/ */
+    public function logo(array $file): string
+    {
+        return $this->siteImage($file, 'logo', [
+            'image/png' => 'png', 'image/webp' => 'webp', 'image/jpeg' => 'jpg', 'image/gif' => 'gif',
+        ], 'Logo için PNG, WEBP, JPG veya GIF görsel yükleyin.');
+    }
+
+    /** uploads/site/ altına içeriği doğrulanmış görsel kaydeder (SVG kabul edilmez: betik içerebilir) */
+    private function siteImage(array $file, string $prefix, array $allowed, string $typeError): string
+    {
         if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
             throw new RuntimeException('Dosya yüklenemedi (hata kodu: ' . ($file['error'] ?? '?') . ').');
         }
         if ($file['size'] > 1048576) {
-            throw new RuntimeException('Favicon en fazla 1 MB olabilir.');
+            throw new RuntimeException('Dosya en fazla 1 MB olabilir.');
         }
-        $allowed = ['image/png' => 'png', 'image/x-icon' => 'ico', 'image/vnd.microsoft.icon' => 'ico', 'image/webp' => 'webp', 'image/jpeg' => 'jpg'];
         $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
         if (!isset($allowed[$mime]) || @getimagesize($file['tmp_name']) === false) {
-            throw new RuntimeException('Favicon için PNG, ICO, WEBP veya JPG görsel yükleyin.');
+            throw new RuntimeException($typeError);
         }
         $absDir = ROOT_PATH . '/uploads/site';
         if (!is_dir($absDir)) {
             mkdir($absDir, 0775, true);
         }
-        $name = 'favicon-' . bin2hex(random_bytes(6)) . '.' . $allowed[$mime];
+        $name = $prefix . '-' . bin2hex(random_bytes(6)) . '.' . $allowed[$mime];
         if (!move_uploaded_file($file['tmp_name'], $absDir . '/' . $name)) {
             throw new RuntimeException('Dosya kaydedilemedi. Klasör izinlerini kontrol edin.');
         }

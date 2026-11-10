@@ -8,8 +8,8 @@
 <header class="navbar" id="navbar">
     <div class="container navbar-inner">
         <a href="<?= e(url()) ?>" class="brand" aria-label="Ana sayfa">
-            <span class="brand-mark"><?= icon('code', 18) ?></span>
-            <span class="brand-text"><?= e($site['domain'] ?: $site['title']) ?></span>
+            <?= brand_mark() ?>
+            <?php if (brand_text_visible()): ?><span class="brand-text"><?= e($site['domain'] ?: $site['title']) ?></span><?php endif; ?>
         </a>
 
         <button class="nav-toggle" id="navToggle" aria-label="Menüyü aç" aria-expanded="false" aria-controls="navMenu">

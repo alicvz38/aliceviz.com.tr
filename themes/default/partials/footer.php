@@ -3,8 +3,8 @@
     <div class="container footer-grid">
         <div class="footer-brand">
             <a href="<?= e(url()) ?>" class="brand">
-                <span class="brand-mark"><?= icon('code', 18) ?></span>
-                <span class="brand-text"><?= e($site['domain'] ?: $site['title']) ?></span>
+                <?= brand_mark() ?>
+                <?php if (brand_text_visible()): ?><span class="brand-text"><?= e($site['domain'] ?: $site['title']) ?></span><?php endif; ?>
             </a>
             <p><?= e($site['description']) ?></p>
             <?= $this->partial('social-links') ?>

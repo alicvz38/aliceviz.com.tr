@@ -15,7 +15,7 @@ $isActive = static fn (array $item) => isset($item['path']) && is_active(trim($p
                 <div class="nav-item theme-logo">
                     <a href="<?= e(admin_url()) ?>" aria-label="Panel ana sayfa">
                         <!-- Sitedeki logo ile aynı (themes/default navbar .brand-mark) -->
-                        <span class="site-brand-mark"><?= icon('code', 18) ?></span>
+                        <?= brand_mark('site-brand-mark') ?>
                     </a>
                 </div>
                 <div class="nav-item theme-text">
