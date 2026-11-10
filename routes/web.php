@@ -11,6 +11,10 @@ use App\Controllers\Admin;
 use App\Controllers\Site;
 use App\Core\Config;
 
+// Arama motorları (veritabanından otomatik)
+$router->get('robots.txt', [Site\SeoController::class, 'robots']);
+$router->get('sitemap.xml', [Site\SeoController::class, 'sitemap']);
+
 // ------------------------------------------------------------
 // ZİYARETÇİ TARAFI (bakım modu kontrolünden geçer)
 // ------------------------------------------------------------

@@ -114,9 +114,11 @@ final class View
     /** themes/{tema}/assets/... adresini verir */
     public function asset(string $file): string
     {
-        $full = $this->path . '/assets/' . ltrim($file, '/');
+        // Canlıda (debug kapalı) varsa .min sürümü kullanılır (tools/minify.php üretir)
+        $full = min_asset_file($this->path . '/assets/' . ltrim($file, '/'));
         $version = is_file($full) ? '?v=' . filemtime($full) : '';
-        return url('themes/' . $this->theme . '/assets/' . ltrim($file, '/')) . $version;
+        $rel = ltrim(substr(str_replace('\\', '/', $full), strlen(str_replace('\\', '/', $this->path . '/assets'))), '/');
+        return url('themes/' . $this->theme . '/assets/' . $rel) . $version;
     }
 
     /** theme.php içindeki "vendor" yoluna göre harici şablon dosyası adresi */

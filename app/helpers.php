@@ -54,12 +54,53 @@ function csrf_token(): string
     return Csrf::token();
 }
 
-/** Tüm temaların ortak kullandığı /assets klasöründeki dosyanın adresi */
+/** Sitenin kök adresi (https://alanadi). "www." kaldırılır; canonical / sitemap / paylaşım etiketleri için */
+function site_origin(): string
+{
+    $https = ($_SERVER['HTTPS'] ?? '') === 'on' || ($_SERVER['SERVER_PORT'] ?? '') === '443'
+        || strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
+    $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? 'localhost'));
+    $host = preg_replace('/^www\./', '', preg_replace('/[^a-z0-9.\-:]/', '', $host));
+    return ($https ? 'https' : 'http') . '://' . $host;
+}
+
+/** Tam adres: absolute_url('projeler') -> https://aliceviz.com.tr/projeler */
+function absolute_url(string $path = ''): string
+{
+    if (preg_match('#^https?://#i', $path)) {
+        return $path;
+    }
+    if (str_starts_with($path, '/')) {
+        return site_origin() . $path;
+    }
+    return site_origin() . url($path);
+}
+
+/** Bu sayfanın asıl adresi (sorgu parametreleri atılır; yalnızca ?sayfa=N korunur) */
+function canonical_url(): string
+{
+    $path = (string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
+    $page = (int) ($_GET['sayfa'] ?? 0);
+    return site_origin() . ($path ?: '/') . ($page > 1 ? '?sayfa=' . $page : '');
+}
+
+/** Canlıda (debug kapalı) dosyanın .min sürümü varsa onu kullan: style.css -> style.min.css */
+function min_asset_file(string $fullPath): string
+{
+    if (Config::get('app.debug', false)) {
+        return $fullPath;
+    }
+    $min = preg_replace('/\.(css|js)$/', '.min.$1', $fullPath);
+    return ($min !== $fullPath && is_file($min) && filemtime($min) >= filemtime($fullPath)) ? $min : $fullPath;
+}
+
+/** Tüm temaların ortak kullandığı /assets klasöründeki dosyanın adresi (canlıda .min sürümü) */
 function shared_asset(string $file): string
 {
     $file = ltrim($file, '/');
-    $full = ROOT_PATH . '/assets/' . $file;
-    return url('assets/' . $file) . (is_file($full) ? '?v=' . filemtime($full) : '');
+    $full = min_asset_file(ROOT_PATH . '/assets/' . $file);
+    $rel = substr($full, strlen(ROOT_PATH) + 1);
+    return url(str_replace('\\', '/', $rel)) . (is_file($full) ? '?v=' . filemtime($full) : '');
 }
 
 /** Panelden yüklenen favicon (yoksa null): ['url' => ..., 'type' => ...] */

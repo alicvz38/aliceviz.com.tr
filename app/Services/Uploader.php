@@ -68,6 +68,14 @@ class Uploader
         ], 'Logo için PNG, WEBP, JPG veya GIF görsel yükleyin.');
     }
 
+    /** Paylaşım görseli (Open Graph): PNG, WEBP veya JPG, en fazla 1 MB → uploads/site/ */
+    public function shareImage(array $file): string
+    {
+        return $this->siteImage($file, 'paylasim', [
+            'image/png' => 'png', 'image/webp' => 'webp', 'image/jpeg' => 'jpg',
+        ], 'Paylaşım görseli için PNG, WEBP veya JPG görsel yükleyin.');
+    }
+
     /** uploads/site/ altına içeriği doğrulanmış görsel kaydeder (SVG kabul edilmez: betik içerebilir) */
     private function siteImage(array $file, string $prefix, array $allowed, string $typeError): string
     {

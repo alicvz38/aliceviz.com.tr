@@ -308,3 +308,11 @@ body.dark .user-profile-dropdown .btn-logout:hover { color: #fff; }
 .widget-content-area .input-group .form-control { padding-left: 16px; }
 /* Anahtarın (switch) altındaki açıklama, anahtarın yazısıyla aynı hizada */
 .widget-content-area .switch + .form-text { padding-left: 55px; }
+
+/* SEO & Google: arama sonucu önizlemesi ve paylaşım görseli */
+.seo-preview { margin-top: 6px; padding: 14px 18px; border-radius: 10px; background: #fff; font-family: Arial, sans-serif; max-width: 640px; }
+.seo-preview small { display: block; color: #202124; font-size: 13px; }
+.seo-preview strong { display: block; color: #1a0dab; font-size: 19px; font-weight: 400; margin: 3px 0; line-height: 1.3; }
+.seo-preview span { display: block; color: #4d5156; font-size: 14px; line-height: 1.5; }
+.seo-links { display: flex; flex-wrap: wrap; gap: 4px 20px; font-size: 13px; padding-left: 20px; }
+.og-preview { display: block; width: 100%; max-width: 480px; aspect-ratio: 1200 / 630; object-fit: cover; border-radius: 10px; border: 1px solid rgba(128,128,128,.25); }

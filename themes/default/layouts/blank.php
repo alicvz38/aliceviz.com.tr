@@ -7,7 +7,7 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <?= $this->partial('head', ['pageTitle' => $pageTitle ?? null, 'metaDescription' => $metaDescription ?? null]) ?>
+    <?= $this->partial('head', ['pageTitle' => $pageTitle ?? null, 'metaDescription' => $metaDescription ?? null, 'ogImage' => $ogImage ?? null, 'ogType' => $ogType ?? null, 'schema' => $schema ?? null, 'noindex' => $noindex ?? false]) ?>
     <?= $this->section('styles') ?>
 </head>
 <body class="<?= e($this->section('bodyClass')) ?>">

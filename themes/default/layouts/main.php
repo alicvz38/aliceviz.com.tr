@@ -7,7 +7,7 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <?= $this->partial('head', ['pageTitle' => $pageTitle ?? null, 'metaDescription' => $metaDescription ?? null]) ?>
+    <?= $this->partial('head', ['pageTitle' => $pageTitle ?? null, 'metaDescription' => $metaDescription ?? null, 'ogImage' => $ogImage ?? null, 'ogType' => $ogType ?? null, 'schema' => $schema ?? null, 'noindex' => $noindex ?? false]) ?>
     <link rel="stylesheet" href="<?= $this->asset('css/style.css') ?>">
     <?= $this->section('styles') ?>
 </head>

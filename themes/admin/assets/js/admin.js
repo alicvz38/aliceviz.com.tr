@@ -332,3 +332,15 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('load', function () { growAll(); });
     window.AdminAutogrow = growAll;
 })();
+
+// SEO & Google: arama sonucu önizlemesi yazdıkça güncellenir
+(function () {
+    var t = document.getElementById('seo_home_title'), d = document.getElementById('seo_home_description');
+    if (!t || !d) return;
+    var pt = document.getElementById('seoPrevTitle'), pd = document.getElementById('seoPrevDesc');
+    function upd() {
+        pt.textContent = t.value.trim() || t.placeholder;
+        pd.textContent = d.value.trim() || d.placeholder;
+    }
+    t.addEventListener('input', upd); d.addEventListener('input', upd);
+})();

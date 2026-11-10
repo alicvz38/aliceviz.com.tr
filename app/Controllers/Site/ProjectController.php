@@ -21,6 +21,9 @@ class ProjectController extends SiteController
 
         $data = [
             'pageTitle' => 'Projeler',
+            'metaDescription' => 'Ali Ceviz\'in geliştirdiği web siteleri, yönetim panelleri ve Windows masaüstü uygulamaları: kaynak kodları GitHub\'da açık projeler.',
+            // Arama / filtre sonuçları ayrı sayfa olarak dizine eklenmesin (asıl adres /projeler)
+            'noindex'   => $search !== null || $language !== null,
             'projects'  => Project::published(self::PER_PAGE, ($page - 1) * self::PER_PAGE, $language, $search, $kind),
             'languages' => Project::languages(),
             'kindCounts' => Project::kindCounts(),
@@ -66,6 +69,20 @@ class ProjectController extends SiteController
         $this->render('project-detail', [
             'pageTitle' => $project->title,
             'metaDescription' => $project->summary,
+            'ogImage'   => $project->imageUrl(),
+            'ogType'    => 'article',
+            'schema'    => [
+                '@type'               => $project->kind === 'web' ? 'WebSite' : 'SoftwareApplication',
+                'name'                => $project->title,
+                'description'         => (string) $project->summary,
+                'url'                 => absolute_url('projeler/' . $project->slug),
+                'image'               => $project->imageUrl() ? absolute_url($project->imageUrl()) : null,
+                'author'              => ['@id' => absolute_url() . '#kisi'],
+                'programmingLanguage' => $project->language ?: null,
+                'codeRepository'      => $project->github_url ?: null,
+                'applicationCategory' => $project->kind === 'web' ? null : 'DeveloperApplication',
+                'operatingSystem'     => $project->kind === 'app' ? 'Windows' : null,
+            ],
             'project'   => $project,
             'readme'    => $readme,
             'related'   => $related,

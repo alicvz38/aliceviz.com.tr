@@ -23,6 +23,7 @@ class SettingController extends AdminController
         'sosyal'  => ['Sosyal Medya', 'users', 'Sosyal medya hesapları'],
         'github'  => ['GitHub', 'github', 'Kullanıcı adı, erişim token\'ı ve önbellek'],
         'gorunum' => ['Görünüm', 'image', 'Logo, favicon, tema ve renkli ikonlar'],
+        'seo'     => ['SEO & Google', 'search', 'Google\'da görünüm, doğrulama kodları ve paylaşım görseli'],
         'bakim'   => ['Bakım Modu', 'tool', 'Siteyi bakıma alma ve bakım mesajı'],
     ];
 
@@ -62,6 +63,7 @@ class SettingController extends AdminController
             'sosyal'   => $this->saveSocial($back),
             'github'   => $this->saveGithub($back),
             'gorunum'  => $this->saveAppearance($back),
+            'seo'      => $this->saveSeo($back),
             'bakim'    => $this->saveMaintenance(),
         };
 
@@ -205,6 +207,41 @@ class SettingController extends AdminController
             'site_favicon'   => $favicon,
             'site_logo'      => $logo,
             'logo_show_text' => $this->flag('logo_show_text'),
+        ]);
+    }
+
+    private function saveSeo(string $back): void
+    {
+        // Doğrulama kodu: tüm <meta ...> etiketi yapıştırılırsa içinden content değeri alınır
+        $code = static function (string $raw): string {
+            if (preg_match('/content\s*=\s*["\']([^"\']+)["\']/i', $raw, $m)) {
+                $raw = $m[1];
+            }
+            return preg_replace('/[^A-Za-z0-9_\-]/', '', $raw);
+        };
+
+        $uploader = new Uploader();
+        $og = (string) Setting::get('seo_og_image', '');
+        if ($this->request->post('remove_og_image')) {
+            $uploader->deleteSiteFile($og);
+            $og = '';
+        }
+        if ($file = $this->request->file('og_image')) {
+            try {
+                $new = $uploader->shareImage($file);
+                $uploader->deleteSiteFile($og);
+                $og = $new;
+            } catch (RuntimeException $e) {
+                $this->backAdmin($back, $e->getMessage(), ['og_image' => $e->getMessage()]);
+            }
+        }
+
+        Setting::setMany([
+            'seo_home_title'          => $this->text('seo_home_title', 70),
+            'seo_home_description'    => $this->text('seo_home_description', 170),
+            'seo_google_verification' => $code($this->text('seo_google_verification', 300)),
+            'seo_bing_verification'   => $code($this->text('seo_bing_verification', 300)),
+            'seo_og_image'            => $og,
         ]);
     }
 

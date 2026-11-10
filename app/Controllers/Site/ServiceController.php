@@ -43,6 +43,15 @@ class ServiceController extends SiteController
         $this->render('service-detail', [
             'pageTitle'       => $service['title'],
             'metaDescription' => $service['intro'],
+            'schema'          => [
+                '@type'       => 'Service',
+                'name'        => $service['title'],
+                'description' => $service['intro'],
+                'serviceType' => $service['short'] ?? $service['title'],
+                'url'         => absolute_url('hizmetler/' . $service['slug']),
+                'provider'    => ['@id' => absolute_url() . '#kisi'],
+                'areaServed'  => ['@type' => 'Country', 'name' => 'Türkiye'],
+            ],
             'service'         => $service,
             'examples'        => $examples,
             'process'         => ServiceCatalog::process(),
