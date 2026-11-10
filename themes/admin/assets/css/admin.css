@@ -285,3 +285,26 @@ textarea.form-control[rows="2"] { min-height: 90px; }
 .logo-demo-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, rgba(56,189,248,.25), rgba(168,85,247,.25)); border: 1px solid rgba(56,189,248,.35); color: #38bdf8; }
 .logo-demo-mark[hidden], .logo-demo-text[hidden] { display: none; }
 .logo-demo-img { height: 34px; width: auto; max-width: 180px; object-fit: contain; border-radius: 8px; }
+
+/* Kutuların iç boşluğu: DataTables stili (dt-global_style.css) koyu temada tüm
+   .widget-content-area kutularını padding:0 yapıyordu → alanlar kenara yapışıyordu */
+body.dark .widget.widget-content-area, .widget.widget-content-area { padding: 24px; }
+@media (max-width: 575px) { body.dark .widget.widget-content-area, .widget.widget-content-area { padding: 16px; } }
+.widget .section-title { margin-bottom: 18px; }
+
+/* Site Ayarları: sekmeler içerikle birlikte ortada */
+.settings-tabs { justify-content: center; }
+
+/* Üst menü > Çıkış Yap: diğer menü bağlantılarıyla aynı görünüm (açık gri, beyaz hover) */
+body.dark .user-profile-dropdown .btn-logout { color: #bfc9d4; font-size: 14px; font-weight: 500; padding: 6px 14px; }
+body.dark .user-profile-dropdown .btn-logout svg { stroke: currentColor; }
+body.dark .user-profile-dropdown .btn-logout:hover { color: #fff; }
+
+/* Form hizası: etiket ve açıklama yazıları, kutunun içindeki yazıyla aynı çizgiden başlar */
+.widget-content-area .form-control, .widget-content-area .form-select { padding-left: 16px; padding-right: 16px; }
+.widget-content-area .form-label, .widget-content-area .form-text { padding-left: 20px; padding-right: 16px; }
+.widget-content-area .form-label { margin-bottom: 8px; }
+.widget-content-area .form-text { margin-top: 6px; }
+.widget-content-area .input-group .form-control { padding-left: 16px; }
+/* Anahtarın (switch) altındaki açıklama, anahtarın yazısıyla aynı hizada */
+.widget-content-area .switch + .form-text { padding-left: 55px; }

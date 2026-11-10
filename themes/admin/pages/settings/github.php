@@ -11,7 +11,7 @@ $this->layout('main');
 $s = static fn (string $key) => old($key, $settings[$key] ?? '');
 ?>
 <?= $this->partial('settings-tabs', ['sections' => $sections, 'section' => $section]) ?>
-<div class="row">
+<div class="row justify-content-center">
     <div class="col-xl-8 col-12 layout-spacing">
         <form method="post" action="<?= e(admin_url('ayarlar/github')) ?>" data-ajax id="settingsForm">
             <?= csrf_field() ?>

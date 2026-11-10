@@ -12,7 +12,7 @@ $s = static fn (string $key) => old($key, $settings[$key] ?? '');
 <?= $this->partial('settings-tabs', ['sections' => $sections, 'section' => $section]) ?>
 <form method="post" action="<?= e(admin_url('ayarlar/genel')) ?>" data-ajax id="settingsForm">
     <?= csrf_field() ?>
-    <div class="row">
+    <div class="row justify-content-center">
         <div class="col-xl-8 col-12 layout-spacing">
             <div class="widget widget-content-area">
                 <div class="section-title"><?= icon('globe') ?> Genel</div>

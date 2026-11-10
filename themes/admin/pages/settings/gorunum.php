@@ -16,6 +16,8 @@ $logo = custom_logo();
 <?= $this->partial('settings-tabs', ['sections' => $sections, 'section' => $section]) ?>
 <form method="post" action="<?= e(admin_url('ayarlar/gorunum')) ?>" enctype="multipart/form-data" data-ajax id="settingsForm">
     <?= csrf_field() ?>
+    <div class="row justify-content-center">
+    <div class="col-xl-8 col-12">
     <div class="row">
         <div class="col-12 layout-spacing">
             <div class="widget widget-content-area">
@@ -91,5 +93,7 @@ $logo = custom_logo();
         <div class="col-12 layout-spacing">
             <button type="submit" class="btn btn-primary"><?= icon('check', 16) ?> Kaydet</button>
         </div>
+    </div>
+    </div>
     </div>
 </form>
