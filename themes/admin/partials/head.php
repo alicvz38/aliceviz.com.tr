@@ -17,7 +17,7 @@ $layout = $this->info('layout', 'vertical-dark-menu');
 <meta name="realtime-token" content="<?= e(App\Support\Realtime::token((int) App\Core\Auth::id())) ?>">
 <?php endif; ?>
 <title><?= e(($pageTitle ?? 'Panel') . ' | ' . $siteTitle . ' Yönetim') ?></title>
-<link rel="icon" href="https://img.icons8.com/fluency/48/code--v1.png" type="image/png">
+<?= favicon_tags() ?>
 
 <link href="<?= $this->vendor("layouts/$layout/css/light/loader.css") ?>" rel="stylesheet">
 <link href="<?= $this->vendor("layouts/$layout/css/dark/loader.css") ?>" rel="stylesheet">

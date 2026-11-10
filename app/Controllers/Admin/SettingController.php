@@ -7,6 +7,8 @@ use App\Core\Session;
 use App\Core\View;
 use App\Models\Setting;
 use App\Services\GithubService;
+use App\Services\Uploader;
+use RuntimeException;
 
 class SettingController extends AdminController
 {
@@ -60,8 +62,27 @@ class SettingController extends AdminController
             $values['site_theme'] = 'default';
         }
 
+        // Favicon: yeni dosya yüklenirse değişir, "varsayılan logoya dön" işaretlenirse kaldırılır
+        $uploader = new Uploader();
+        $favicon = (string) Setting::get('site_favicon', '');
+        if ($this->request->post('remove_favicon')) {
+            $uploader->deleteSiteFile($favicon);
+            $favicon = '';
+        }
+        if ($file = $this->request->file('favicon')) {
+            try {
+                $new = $uploader->favicon($file);
+                $uploader->deleteSiteFile($favicon);
+                $favicon = $new;
+            } catch (RuntimeException $e) {
+                $this->backAdmin('ayarlar', $e->getMessage(), ['favicon' => $e->getMessage()]);
+            }
+        }
+        Setting::set('site_favicon', $favicon);
+
         Setting::setMany($values);
         Setting::set('whatsapp_enabled', $this->request->post('whatsapp_enabled') ? '1' : '0');
+        Setting::set('colorful_icons', $this->request->post('colorful_icons') ? '1' : '0');
         Setting::set('maintenance_mode', $this->request->post('maintenance_mode') ? '1' : '0');
 
         // Token yalnızca yeni değer girilirse değişir; "sil" işaretlenirse kaldırılır

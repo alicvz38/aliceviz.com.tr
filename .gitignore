@@ -39,3 +39,6 @@ desktop.ini
 
 # Ayrı depolar / ilgisiz klasörler
 /Creator Suite/
+
+# Panelden yüklenen site dosyaları (favicon)
+/uploads/site/

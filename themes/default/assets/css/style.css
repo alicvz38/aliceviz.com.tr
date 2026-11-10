@@ -763,3 +763,16 @@ button.contact-line, a.contact-line { cursor: pointer; }
     *, *::before, *::after { animation: none !important; transition: none !important; }
     .project-card { opacity: 1; transform: none; }
 }
+
+/* Renkli ikonlar (Panel > Site Ayarları > Renkli ikonlar): her ikon sırayla farklı renk alır */
+.icons-colorful .feature:nth-child(6n+1), .icons-colorful .process-step:nth-child(6n+1) { --ic: #38bdf8; }
+.icons-colorful .feature:nth-child(6n+2), .icons-colorful .process-step:nth-child(6n+2) { --ic: #a855f7; }
+.icons-colorful .feature:nth-child(6n+3), .icons-colorful .process-step:nth-child(6n+3) { --ic: #22c55e; }
+.icons-colorful .feature:nth-child(6n+4), .icons-colorful .process-step:nth-child(6n+4) { --ic: #f59e0b; }
+.icons-colorful .feature:nth-child(6n+5), .icons-colorful .process-step:nth-child(6n+5) { --ic: #f43f5e; }
+.icons-colorful .feature:nth-child(6n+6), .icons-colorful .process-step:nth-child(6n+6) { --ic: #14b8a6; }
+.icons-colorful .feature-icon, .icons-colorful .process-icon {
+    color: var(--ic); background: color-mix(in srgb, var(--ic) 15%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ic) 35%, transparent);
+}
+.icons-colorful .feature:hover, .icons-colorful .process-step:hover { border-color: color-mix(in srgb, var(--ic) 45%, transparent); }

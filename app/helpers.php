@@ -62,6 +62,31 @@ function shared_asset(string $file): string
     return url('assets/' . $file) . (is_file($full) ? '?v=' . filemtime($full) : '');
 }
 
+/** Panelden yüklenen favicon (yoksa null): ['url' => ..., 'type' => ...] */
+function custom_favicon(): ?array
+{
+    $path = (string) setting('site_favicon', '');
+    if ($path === '' || !is_file(ROOT_PATH . '/' . $path)) {
+        return null;
+    }
+    $types = ['png' => 'image/png', 'ico' => 'image/x-icon', 'webp' => 'image/webp', 'jpg' => 'image/jpeg'];
+    $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    return ['url' => url($path) . '?v=' . filemtime(ROOT_PATH . '/' . $path), 'type' => $types[$ext] ?? 'image/png'];
+}
+
+/** Sekme ikonu etiketleri: panelden yüklenen favicon, yoksa varsayılan logo (assets/img) */
+function favicon_tags(): string
+{
+    if ($fav = custom_favicon()) {
+        $u = e($fav['url']);
+        return '<link rel="icon" href="' . $u . '" type="' . e($fav['type']) . '">' . "\n"
+             . '<link rel="apple-touch-icon" href="' . $u . '">';
+    }
+    return '<link rel="icon" href="' . e(shared_asset('img/favicon.svg')) . '" type="image/svg+xml">' . "\n"
+         . '<link rel="icon" href="' . e(shared_asset('img/favicon-32.png')) . '" sizes="32x32" type="image/png">' . "\n"
+         . '<link rel="apple-touch-icon" href="' . e(shared_asset('img/apple-touch-icon.png')) . '">';
+}
+
 /**
  * Türkiye telefon numarasını doğrular ve tek biçime getirir (assets/js/mask.js ile aynı desen).
  *   "+90 532 123 45 67", "05321234567", "532 123 4567"  ->  "0 (532) 123 45 67"

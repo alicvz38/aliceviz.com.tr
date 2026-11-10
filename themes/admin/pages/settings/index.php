@@ -8,7 +8,7 @@
 $this->layout('main');
 $s = static fn (string $key) => old($key, $settings[$key] ?? '');
 ?>
-<form method="post" action="<?= e(admin_url('ayarlar')) ?>" data-ajax id="settingsForm">
+<form method="post" action="<?= e(admin_url('ayarlar')) ?>" enctype="multipart/form-data" data-ajax id="settingsForm">
     <?= csrf_field() ?>
     <div class="row">
         <div class="col-xl-8 col-12 layout-spacing">
@@ -116,6 +116,29 @@ $s = static fn (string $key) => old($key, $settings[$key] ?? '');
                     </div>
                 <?php endforeach; ?>
                 <div class="form-text">Yeni tema eklemek için <code>themes/default</code> klasörünü kopyalayın.</div>
+                <hr class="my-3">
+                <div class="switch form-switch-custom switch-inline form-switch-primary mb-1 d-block">
+                    <input class="switch-input" type="checkbox" role="switch" id="colorful_icons" name="colorful_icons" value="1" <?= ($settings['colorful_icons'] ?? '0') === '1' ? 'checked' : '' ?>>
+                    <label class="switch-label" for="colorful_icons">Renkli ikonlar</label>
+                </div>
+                <div class="form-text">Hizmet özellikleri ve çalışma süreci ikonları her biri farklı renkte görünür. Kapatınca hizmetin kendi tek rengine döner.</div>
+            </div>
+
+            <div class="widget widget-content-area mt-4">
+                <div class="section-title"><?= icon('image') ?> Favicon (sekme ikonu)</div>
+                <?php $fav = custom_favicon(); $favUrl = $fav['url'] ?? shared_asset('img/favicon.svg'); ?>
+                <div class="favicon-demo mb-3">
+                    <img src="<?= e($favUrl) ?>" id="faviconPreview" class="favicon-preview" alt="Favicon">
+                    <div class="favicon-tab"><img src="<?= e($favUrl) ?>" alt=""><span><?= e($s('site_title') ?: 'Site') ?></span></div>
+                </div>
+                <input type="file" class="form-control form-control-sm" id="favicon" name="favicon" accept="image/png,image/x-icon,image/webp,image/jpeg" data-preview="#faviconPreview">
+                <div class="form-text">Kare bir PNG önerilir (en az 180×180 px). PNG, ICO, WEBP veya JPG — en fazla 1 MB.<?= $fav ? '' : ' Şu an varsayılan logo kullanılıyor.' ?></div>
+                <?php if ($fav): ?>
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" id="remove_favicon" name="remove_favicon" value="1">
+                        <label class="form-check-label" for="remove_favicon">Varsayılan logoya dön</label>
+                    </div>
+                <?php endif; ?>
             </div>
 
             <div class="widget widget-content-area mt-4">

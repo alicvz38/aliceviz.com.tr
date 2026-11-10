@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="<?= $this->asset('css/style.css') ?>">
     <?= $this->section('styles') ?>
 </head>
-<body>
+<body class="<?= setting('colorful_icons', '0') === '1' ? 'icons-colorful' : '' ?>">
     <div class="page-bg" aria-hidden="true"></div>
 
     <?= $this->partial('admin-bar') ?>
