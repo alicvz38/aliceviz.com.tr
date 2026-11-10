@@ -31,7 +31,7 @@ $initials = implode('', array_map(static fn ($p) => mb_strtoupper(mb_substr($p, 
                 <ul class="cv-contact">
                     <?php if ($site['location']): ?><li><?= icon('map-pin', 15) ?> <?= e($site['location']) ?></li><?php endif; ?>
                     <?php if ($site['email']): ?><li><?= icon('mail', 15) ?> <a href="mailto:<?= e($site['email']) ?>"><?= e($site['email']) ?></a></li><?php endif; ?>
-                    <?php if ($site['phone']): ?><li><?= icon('phone', 15) ?> <a href="<?= e(phone_href($site['phone'])) ?>"><?= e($site['phone']) ?></a></li><?php endif; ?>
+                    <?php if ($site['phone'] && $site['whatsapp']): ?><li><?= icon('whatsapp', 15) ?> <a href="<?= e($site['whatsapp']) ?>" target="_blank" rel="noopener" title="WhatsApp'tan yazın"><?= e($site['phone']) ?></a></li><?php elseif ($site['phone']): ?><li><?= icon('phone', 15) ?> <a href="<?= e(phone_href($site['phone'])) ?>"><?= e($site['phone']) ?></a></li><?php endif; ?>
                     <?php if ($site['domain']): ?><li><?= icon('globe', 15) ?> <?= e($site['domain']) ?></li><?php endif; ?>
                     <?php if ($site['social']['github']): ?><li><?= icon('github', 15) ?> <a href="<?= e($site['social']['github']) ?>" target="_blank" rel="noopener"><?= e(str_replace('https://', '', $site['social']['github'])) ?></a></li><?php endif; ?>
                 </ul>

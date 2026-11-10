@@ -31,8 +31,8 @@
             <?php if ($site['email']): ?>
                 <button type="button" class="footer-link js-copy-email" data-email="<?= e($site['email']) ?>"><?= icon('mail', 14) ?> <?= e($site['email']) ?></button>
             <?php endif; ?>
-            <?php if ($site['phone']): ?><a href="<?= e(phone_href($site['phone'])) ?>"><?= icon('phone', 14) ?> <?= e($site['phone']) ?></a><?php endif; ?>
-            <?php if ($site['phone'] && $site['whatsapp']): ?><a href="<?= e($site['whatsapp']) ?>" class="footer-wa" target="_blank" rel="noopener"><?= icon('whatsapp', 14) ?> WhatsApp'tan yazın</a><?php endif; ?>
+            <?php if ($site['phone'] && $site['whatsapp']): ?><a href="<?= e($site['whatsapp']) ?>" class="footer-wa" target="_blank" rel="noopener" title="WhatsApp'tan yazın"><?= icon('whatsapp', 14) ?> <?= e($site['phone']) ?></a>
+            <?php elseif ($site['phone']): ?><a href="<?= e(phone_href($site['phone'])) ?>"><?= icon('phone', 14) ?> <?= e($site['phone']) ?></a><?php endif; ?>
             <?php if ($site['location']): ?><span><?= icon('map-pin', 14) ?> <?= e($site['location']) ?></span><?php endif; ?>
             <a href="<?= e(url('iletisim')) ?>"><?= icon('message-square', 14) ?> Mesaj gönderin</a>
         </div>

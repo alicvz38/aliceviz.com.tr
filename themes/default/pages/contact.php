@@ -75,7 +75,6 @@ $this->layout('main');
                             <span class="contact-line-icon is-wa"><?= icon('whatsapp', 19) ?></span>
                             <span><small>WhatsApp (yazmak için dokunun)</small><?= e($site['phone']) ?></span>
                         </a>
-                        <a class="contact-call" href="<?= e(phone_href($site['phone'])) ?>" title="Ara" aria-label="Telefonla ara"><?= icon('phone', 16) ?></a>
                     </div>
                 <?php elseif ($site['phone']): ?>
                     <a class="contact-line" href="<?= e(phone_href($site['phone'])) ?>">
