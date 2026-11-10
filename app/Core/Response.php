@@ -19,6 +19,9 @@ final class Response
 {
     public static function json(array $payload, int $status = 200): never
     {
+        if (!empty($payload['ok']) && !empty($payload['message']) && is_string($payload['message'])) {
+            \App\Support\ActivityLog::capture($payload['message']); // panel etkinlik günlüğü
+        }
         if (!headers_sent()) {
             http_response_code($status);
             header('Content-Type: application/json; charset=utf-8');

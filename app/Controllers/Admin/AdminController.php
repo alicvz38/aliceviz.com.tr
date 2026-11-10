@@ -21,6 +21,8 @@ abstract class AdminController extends Controller
 
     protected function boot(): void
     {
+        // Takvim / etkinlik günlüğü: bu istekteki işlem başarılı olursa otomatik kaydedilir
+        \App\Support\ActivityLog::prepare($this->request);
         $this->view->share('authUser', Auth::user());
         $this->view->share('siteTitle', setting('site_title', Config::get('app.name')));
         $this->view->share('maintenance', Setting::isMaintenance());
@@ -40,6 +42,7 @@ abstract class AdminController extends Controller
         return [
             ['heading' => 'GENEL'],
             ['label' => 'Gösterge Paneli', 'icon' => 'home', 'path' => '', 'exact' => true],
+            ['label' => 'Takvim', 'icon' => 'calendar', 'path' => 'takvim'],
 
             ['heading' => 'MÜŞTERİLER'],
             ['label' => 'Canlı Destek', 'icon' => 'message-square', 'path' => 'canli-destek', 'badge' => \App\Models\ChatConversation::countUnread(), 'badge_id' => 'badge-chat'],

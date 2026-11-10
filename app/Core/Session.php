@@ -56,6 +56,9 @@ final class Session
     /** type: success | danger | warning | info */
     public static function flash(string $type, string $message): void
     {
+        if ($type === 'success') {
+            \App\Support\ActivityLog::capture($message); // panel etkinlik günlüğü (yalnızca panel POST isteklerinde yazar)
+        }
         $_SESSION['_flash'][] = ['type' => $type, 'message' => $message];
     }
 

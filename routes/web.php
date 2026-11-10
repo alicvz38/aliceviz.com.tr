@@ -60,6 +60,8 @@ $router->group($admin, ['auth'], function ($r) {
     $r->post('cikis', [Admin\AuthController::class, 'logout']);
 
     $r->get('', [Admin\DashboardController::class, 'index']);
+    $r->get('takvim', [Admin\CalendarController::class, 'index']);
+    $r->get('takvim/olaylar', [Admin\CalendarController::class, 'events']);
     $r->post('bakim-modu', [Admin\DashboardController::class, 'toggleMaintenance']);
     $r->get('bildirimler', [Admin\DashboardController::class, 'counters']);
 

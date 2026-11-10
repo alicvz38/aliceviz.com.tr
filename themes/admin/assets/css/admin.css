@@ -344,3 +344,46 @@ body .sidebar-wrapper #sidebar .theme-brand div.theme-text a.nav-link { font-siz
 .stat-card > div:last-child { flex: 1; justify-content: center; }
 .stat-card > div:last-child p { margin: 0 !important; }
 .stat-card > div:last-child { margin-right: 15px; }
+
+/* ---------------------------------------------------------------- Takvim (etkinlik günlüğü) */
+/* Şablonda olmayan ek renkler: info (camgöbeği), secondary (mor), dark (gri) */
+body.dark .fc-bg-info { color: #2196f3; background-color: rgba(33, 150, 243, .15); }
+body.dark .fc-bg-info.fc-h-event .fc-event-main, body.dark .fc-bg-info .fc-event-title { color: #2196f3; }
+body.dark .fc-bg-secondary { color: #a855f7; background-color: rgba(168, 85, 247, .15); }
+body.dark .fc-bg-secondary.fc-h-event .fc-event-main, body.dark .fc-bg-secondary .fc-event-title { color: #a855f7; }
+body.dark .fc-bg-dark { color: #9ca3af; background-color: rgba(156, 163, 175, .14); }
+body.dark .fc-bg-dark.fc-h-event .fc-event-main, body.dark .fc-bg-dark .fc-event-title { color: #9ca3af; }
+.calendar-widget .fc .fc-daygrid-event { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; padding: 1px 4px; border: 0; }
+.calendar-widget .fc .fc-daygrid-event .fc-event-time { font-weight: 700; margin-right: 4px; }
+.calendar-widget .fc .fc-daygrid-day { cursor: pointer; }
+.calendar-widget .fc .fc-daygrid-day:hover { background: rgba(255, 255, 255, .02); }
+.calendar-widget .fc-list-event { cursor: pointer; }
+
+.calendar-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.cal-filter { margin: 0; cursor: pointer; user-select: none; }
+.cal-filter input { position: absolute; opacity: 0; pointer-events: none; }
+.cal-filter span { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600;
+    border: 1px solid currentColor; opacity: .45; transition: opacity .2s ease, background .2s ease; }
+.cal-filter span b { font-weight: 700; font-size: 11px; padding: 0 6px; border-radius: 999px; background: rgba(255, 255, 255, .1); }
+.cal-filter input:checked + span { opacity: 1; background: color-mix(in srgb, currentColor 14%, transparent); }
+.cal-filter-primary { color: #4361ee; } .cal-filter-success { color: #00ab55; } .cal-filter-warning { color: #e2a03f; }
+.cal-filter-info { color: #2196f3; } .cal-filter-secondary { color: #a855f7; } .cal-filter-dark { color: #9ca3af; }
+
+.day-log-list { list-style: none; margin: 0; padding: 0; position: relative; max-height: 640px; overflow-y: auto; }
+.day-log-item { display: flex; gap: 12px; padding: 10px 8px; border-radius: 10px; cursor: pointer; position: relative; transition: background .2s ease; }
+.day-log-item:hover { background: rgba(255, 255, 255, .04); }
+.day-log-item::before { content: ""; width: 3px; border-radius: 3px; flex-shrink: 0; background: currentColor; }
+.day-log-time { font-family: Consolas, monospace; font-size: 12px; font-weight: 700; color: #888ea8; width: 40px; flex-shrink: 0; padding-top: 1px; }
+.day-log-body { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.day-log-body strong { font-size: 13.5px; font-weight: 600; color: #e0e6ed; word-break: break-word; }
+.day-log-body small { font-size: 12px; color: #888ea8; word-break: break-word; }
+.day-log-primary { color: #4361ee; } .day-log-success { color: #00ab55; } .day-log-warning { color: #e2a03f; }
+.day-log-info { color: #2196f3; } .day-log-secondary { color: #a855f7; } .day-log-dark { color: #9ca3af; }
+.day-log-empty { color: #888ea8; font-size: 13px; padding: 12px 8px; }
+/* Takvim başlık satırı (Pzt, Sal...) ve liste görünümü gün başlıkları: açık tema beyazı yerine koyu */
+body.dark .calendar-widget .fc .fc-scrollgrid-section-header > *, body.dark .calendar-widget .fc .fc-col-header,
+body.dark .calendar-widget .fc .fc-col-header-cell { background: #1b2e4b !important; }
+body.dark .calendar-widget .fc .fc-col-header-cell-cushion { color: #bfc9d4 !important; font-weight: 600; padding: 8px 4px; }
+body.dark .calendar-widget .fc .fc-list-sticky .fc-list-day > *, body.dark .calendar-widget .fc .fc-list-day-cushion { background: #1b2e4b !important; }
+body.dark .calendar-widget .fc .fc-list-event:hover td { background: rgba(255, 255, 255, .04); }
+body.dark .calendar-widget .fc .fc-list-event-title, body.dark .calendar-widget .fc .fc-list-event-time { color: #e0e6ed; }
