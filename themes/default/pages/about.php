@@ -85,18 +85,27 @@ $initials = implode('', array_map(static fn ($p) => mb_strtoupper(mb_substr($p, 
                 <?php endforeach; ?>
 
                 <?php if ($recent): ?>
-                    <section class="cv-block glass no-print">
-                        <h2><?= icon('layers', 20) ?> Son Projeler</h2>
+                    <section class="cv-block glass cv-projects-block">
+                        <h2><?= icon('layers', 20) ?> Projelerim</h2>
                         <ul class="cv-projects">
                             <?php foreach ($recent as $p): ?>
                                 <li>
-                                    <a href="<?= e($p->url()) ?>"><?= e($p->title) ?></a>
-                                    <?php if ($p->language): ?><span class="lang"><i style="background: <?= e($p->languageColor()) ?>"></i><?= e($p->language) ?></span><?php endif; ?>
-                                    <p><?= e(str_limit($p->summary, 120)) ?></p>
+                                    <div class="cv-project-head">
+                                        <a href="<?= e($p->url()) ?>"><?= e($p->title) ?></a>
+                                        <?php if ($p->kind): ?><span class="cv-project-kind"><?= icon($p->kindIcon(), 12) ?> <?= e($p->kindLabel()) ?></span><?php endif; ?>
+                                        <?php if ($p->language): ?><span class="lang"><i style="background: <?= e($p->languageColor()) ?>"></i><?= e($p->language) ?></span><?php endif; ?>
+                                    </div>
+                                    <?php if ($p->summary): ?><p><?= e(str_limit($p->summary, 170)) ?></p><?php endif; ?>
+                                    <?php if ($p->github_url || $p->demo_url): ?>
+                                        <div class="cv-project-links">
+                                            <?php if ($p->github_url): ?><a href="<?= e($p->github_url) ?>" target="_blank" rel="noopener"><?= icon('github', 12) ?> <?= e(preg_replace('#^https?://(www\.)?#', '', rtrim($p->github_url, '/'))) ?></a><?php endif; ?>
+                                            <?php if ($p->demo_url): ?><a href="<?= e($p->demo_url) ?>" target="_blank" rel="noopener"><?= icon('external-link', 12) ?> <?= e(preg_replace('#^https?://(www\.)?#', '', rtrim($p->demo_url, '/'))) ?></a><?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
                                 </li>
                             <?php endforeach; ?>
                         </ul>
-                        <a href="<?= e(url('projeler')) ?>" class="link-arrow">Tüm projeler <?= icon('arrow-right', 16) ?></a>
+                        <a href="<?= e(url('projeler')) ?>" class="link-arrow no-print">Tüm projeler <?= icon('arrow-right', 16) ?></a>
                     </section>
                 <?php endif; ?>
             </div>

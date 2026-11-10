@@ -29,7 +29,7 @@ class AboutController extends SiteController
                 'projects' => Project::countPublished(),
                 'stars'    => Project::totalStars(),
             ],
-            'recent'          => Project::published(3),
+            'recent'          => Project::published(6),
         ]);
     }
 }

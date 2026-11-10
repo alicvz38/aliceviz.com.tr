@@ -658,6 +658,16 @@ button.contact-line, a.contact-line { cursor: pointer; }
 .cv-projects li a { font-weight: 600; margin-right: .6rem; }
 .cv-projects li a:hover { color: var(--accent); }
 .cv-projects .lang { display: inline-flex; align-items: center; gap: .35rem; font-size: .8rem; color: var(--muted); }
+.cv-projects li { padding-bottom: .8rem; border-bottom: 1px dashed var(--border); }
+.cv-projects li:last-child { border-bottom: 0; padding-bottom: 0; }
+.cv-project-head { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .6rem; }
+.cv-project-head > a { margin-right: 0 !important; }
+.cv-project-kind { display: inline-flex; align-items: center; gap: .3rem; font-size: .72rem; font-weight: 600; padding: .08rem .5rem; border-radius: 999px; color: var(--accent); border: 1px solid rgba(56, 189, 248, .35); background: rgba(56, 189, 248, .08); }
+.cv-projects p { color: var(--muted); font-size: .88rem; margin-top: .25rem; }
+.cv-project-links { display: flex; flex-wrap: wrap; gap: .2rem 1rem; margin-top: .3rem; font-size: .8rem; }
+.cv-project-links a { display: inline-flex; align-items: center; gap: .3rem; color: var(--text-2); font-weight: 400 !important; }
+.cv-project-links a:hover { color: var(--accent); }
+.cv-projects-block .link-arrow { margin-top: 1rem; }
 .cv-projects p { color: var(--muted); font-size: .88rem; }
 .cv-projects + .link-arrow { margin-top: 1rem; }
 .cv-hire p { color: var(--text-2); font-size: .92rem; margin-bottom: 1rem; }
@@ -737,6 +747,14 @@ button.contact-line, a.contact-line { cursor: pointer; }
 
     .cv-identity h1, .cv-block h2, .timeline-head h3, .skill-head, .lang-list span, .cert-list strong { color: #111 !important; }
     .cv-summary, .timeline-org, .timeline-item p, .cv-contact, .cv-stats dt, .lang-list small, .cert-list small, .skill-group, .skill-head small { color: #475569 !important; }
+    .cv-projects { gap: .45rem; }
+    .cv-projects li { padding-bottom: .45rem; border-bottom-color: #e5e7eb; break-inside: avoid; }
+    .cv-project-head > a { font-size: .92rem; color: #111 !important; }
+    .cv-project-kind { font-size: .66rem; padding: 0 .45rem; color: #0284c7 !important; border-color: #bae6fd; background: #f0f9ff; }
+    .cv-projects p { font-size: .82rem; line-height: 1.45; margin-top: .1rem; color: #475569 !important; }
+    .cv-projects .lang { font-size: .74rem; color: #475569 !important; }
+    .cv-project-links { margin-top: .15rem; font-size: .74rem; }
+    .cv-project-links a { color: #0369a1 !important; }
     .cv-block, .timeline-item, .skill-list li, .lang-list li { break-inside: avoid; }
     a { color: inherit !important; text-decoration: none; }
 }
