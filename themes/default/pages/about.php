@@ -131,7 +131,7 @@ $initials = implode('', array_map(static fn ($p) => mb_strtoupper(mb_substr($p, 
 
                 <?php if ($items['language']): ?>
                     <section class="cv-block glass">
-                        <h2><?= icon('globe', 20) ?> Diller</h2>
+                        <h2><?= icon('globe', 20) ?> Yabancı Diller</h2>
                         <ul class="lang-list">
                             <?php foreach ($items['language'] as $l): ?>
                                 <li>
