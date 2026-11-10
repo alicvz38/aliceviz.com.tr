@@ -54,6 +54,13 @@ function csrf_token(): string
     return Csrf::token();
 }
 
+/** Etkin Google AdSense yayıncı kimliği (ca-pub-...) — kapalıysa veya girilmemişse null */
+function adsense_client(): ?string
+{
+    $client = (string) setting('adsense_client', '');
+    return setting('adsense_enabled', '0') === '1' && preg_match('/^ca-pub-\d{10,20}$/', $client) ? $client : null;
+}
+
 /** Sitenin kök adresi (https://alanadi). "www." kaldırılır; canonical / sitemap / paylaşım etiketleri için */
 function site_origin(): string
 {

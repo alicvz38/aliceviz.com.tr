@@ -24,6 +24,7 @@ class SettingController extends AdminController
         'github'  => ['GitHub', 'github', 'Kullanıcı adı, erişim token\'ı ve önbellek'],
         'gorunum' => ['Görünüm', 'image', 'Logo, favicon, tema ve renkli ikonlar'],
         'seo'     => ['SEO & Google', 'search', 'Google\'da görünüm, doğrulama kodları ve paylaşım görseli'],
+        'reklam'  => ['Reklam (AdSense)', 'dollar-sign', 'Google AdSense reklamları ve ads.txt'],
         'bakim'   => ['Bakım Modu', 'tool', 'Siteyi bakıma alma ve bakım mesajı'],
     ];
 
@@ -64,6 +65,7 @@ class SettingController extends AdminController
             'github'   => $this->saveGithub($back),
             'gorunum'  => $this->saveAppearance($back),
             'seo'      => $this->saveSeo($back),
+            'reklam'   => $this->saveAds($back),
             'bakim'    => $this->saveMaintenance(),
         };
 
@@ -242,6 +244,27 @@ class SettingController extends AdminController
             'seo_google_verification' => $code($this->text('seo_google_verification', 300)),
             'seo_bing_verification'   => $code($this->text('seo_bing_verification', 300)),
             'seo_og_image'            => $og,
+        ]);
+    }
+
+    private function saveAds(string $back): void
+    {
+        // AdSense'in verdiği <script> / <meta> kodunun tamamı veya yalnızca kimlik yapıştırılabilir
+        $raw = $this->text('adsense_client', 2000);
+        $client = '';
+        if ($raw !== '') {
+            if (!preg_match('/(?:ca-)?pub-(\d{10,20})/', $raw, $m)) {
+                $this->backAdmin($back, 'Yayıncı kimliği bulunamadı. "ca-pub-" ile başlayan kimliği veya AdSense kodunu yapıştırın.', ['adsense_client' => 'Geçersiz yayıncı kimliği.']);
+            }
+            $client = 'ca-pub-' . $m[1];
+        }
+        $enabled = $this->flag('adsense_enabled');
+        if ($enabled === '1' && $client === '') {
+            $this->backAdmin($back, 'Reklamları açmak için önce yayıncı kimliğini girin.', ['adsense_client' => 'Zorunlu.']);
+        }
+        Setting::setMany([
+            'adsense_client'  => $client,
+            'adsense_enabled' => $enabled,
         ]);
     }
 

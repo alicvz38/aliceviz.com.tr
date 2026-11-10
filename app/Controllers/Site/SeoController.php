@@ -26,6 +26,22 @@ class SeoController extends SiteController
         exit;
     }
 
+    /** ads.txt: AdSense yayıncı kimliği girilmişse yetkili satıcı satırı (reklam kapalıyken de kalır; onay sürecinde gerekir) */
+    public function adsTxt(): void
+    {
+        $client = (string) setting('adsense_client', '');
+        if (!preg_match('/^ca-pub-(\d{10,20})$/', $client, $m)) {
+            http_response_code(404);
+            header('Content-Type: text/plain; charset=UTF-8');
+            echo "# ads.txt: AdSense yayıncı kimliği girilmemiş\n";
+            exit;
+        }
+        header('Content-Type: text/plain; charset=UTF-8');
+        header('Cache-Control: public, max-age=3600');
+        echo 'google.com, pub-' . $m[1] . ", DIRECT, f08c47fec0942fa0\n";
+        exit;
+    }
+
     public function sitemap(): void
     {
         $urls = [];

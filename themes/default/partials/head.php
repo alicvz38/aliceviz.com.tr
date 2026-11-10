@@ -63,6 +63,12 @@ if (!empty($schema)) {
 <?php endif; ?>
 <?php if ($v = setting('seo_bing_verification', '')): ?><meta name="msvalidate.01" content="<?= e($v) ?>">
 <?php endif; ?>
+<?php if ($ads = adsense_client()): ?>
+<meta name="google-adsense-account" content="<?= e($ads) ?>">
+<?php if (http_response_code() < 400): /* bakım (503) ve 404 sayfalarında reklam gösterilmez */ ?>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<?= e($ads) ?>" crossorigin="anonymous"></script>
+<?php endif; ?>
+<?php endif; ?>
 <meta name="author" content="<?= e($site['title']) ?>">
 <meta name="theme-color" content="#0b0f19">
 <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
