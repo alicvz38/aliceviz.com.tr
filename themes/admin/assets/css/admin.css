@@ -328,3 +328,15 @@ body.dark .user-profile-dropdown .btn-logout:hover { color: #fff; }
 .odo-strip span { display: block; height: 1.15em; line-height: 1.15em; text-align: center; }
 .stat-card h3, .menu-badge, .navbar-mail-badge { font-variant-numeric: tabular-nums; }
 .menu-badge .odo, .navbar-mail-badge .odo { vertical-align: top; }
+
+/* Gösterge kartları: etiket sayının sağında, dikeyde ortalı */
+.stat-card > div:last-child { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.stat-card > div:last-child h3 { line-height: 1; flex-shrink: 0; }
+.stat-card > div:last-child p { line-height: 1.3; }
+
+/* Sol menü: logonun yanındaki alan adı daha küçük, logo ve yazı tam görünür */
+body .sidebar-wrapper #sidebar .theme-brand div.theme-text a.nav-link { font-size: 17px !important; white-space: nowrap; }
+#sidebar .theme-brand .nav-logo { min-width: 0; }
+#sidebar .theme-brand div.theme-text { min-width: 0; overflow: hidden; }
+#sidebar .theme-brand div.theme-text a { overflow: hidden; text-overflow: ellipsis; }
+#sidebar .theme-brand .theme-logo { flex-shrink: 0; }
