@@ -58,7 +58,7 @@ $langColor = static fn (string $lang) => (new App\Models\Project(['language' => 
             <div class="widget stat-card">
                 <div class="stat-icon bg-soft-<?= $color ?>"><?= icon($ico) ?></div>
                 <div>
-                    <h3><?= (int) $value ?></h3>
+                    <h3 data-odo="<?= (int) $value ?>"><?= (int) $value ?></h3>
                     <p><?= e($label) ?></p>
                 </div>
             </div>

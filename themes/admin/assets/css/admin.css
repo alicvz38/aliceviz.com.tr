@@ -319,3 +319,12 @@ body.dark .user-profile-dropdown .btn-logout:hover { color: #fff; }
 
 /* Reklam (AdSense) durum satırı */
 .ads-status { display: flex; flex-direction: column; gap: 4px; font-size: 13px; padding: 12px 20px; border-radius: 10px; background: rgba(128,128,128,.08); }
+
+/* Kayan sayaç (sitedekiyle aynı): artarken rakamlar alttan, azalırken üstten gelir (admin.js AdminOdometer) */
+.odo { display: inline-flex; height: 1.15em; line-height: 1.15em; overflow: hidden; vertical-align: bottom; }
+.odo-col { display: inline-block; width: 1ch; height: 1.15em; overflow: hidden; transition: width .45s ease, opacity .45s ease; }
+.odo-col.is-off { width: 0; opacity: 0; }
+.odo-strip { display: flex; flex-direction: column; transition: transform 1s cubic-bezier(.22, .9, .25, 1); will-change: transform; }
+.odo-strip span { display: block; height: 1.15em; line-height: 1.15em; text-align: center; }
+.stat-card h3, .menu-badge, .navbar-mail-badge { font-variant-numeric: tabular-nums; }
+.menu-badge .odo, .navbar-mail-badge .odo { vertical-align: top; }
