@@ -14,6 +14,7 @@ class CalendarController extends AdminController
 {
     public function index(): void
     {
+        ActivityLog::backfillUploads();
         $db = Database::getInstance();
         $counts = array_column($db->fetchAll('SELECT category, COUNT(*) AS c FROM activity_log GROUP BY category'), 'c', 'category');
 
@@ -49,7 +50,8 @@ class CalendarController extends AdminController
                     'label'    => $label,
                     'color'    => $color,
                     'detail'   => $row['detail'],
-                    'url'      => $row['url'] !== null ? admin_url($row['url']) : null,
+                    'url'      => $row['url'] === null ? null : (preg_match('#^https?://#', $row['url']) ? $row['url'] : admin_url($row['url'])),
+                    'external' => (bool) preg_match('#^https?://#', (string) $row['url']),
                     'time'     => substr($row['created_at'], 11, 5),
                     'date'     => format_date($row['created_at'], 'd.m.Y'),
                 ],
@@ -59,6 +61,16 @@ class CalendarController extends AdminController
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-store');
         echo json_encode($events, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+
+    /** Arka planda GitHub commit'lerini çeker (sayfa beklemeden açılır); yeni eklenen sayısını döner */
+    public function sync(): void
+    {
+        $added = ActivityLog::syncCommits((bool) $this->request->get('zorla', false));
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store');
+        echo json_encode(['added' => $added]);
         exit;
     }
 

@@ -96,6 +96,8 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('activityModalDetail').textContent = p.detail || '';
         var link = document.getElementById('activityModalLink');
         link.classList.toggle('d-none', !p.url); if (p.url) link.href = p.url;
+        link.target = p.external ? '_blank' : '';
+        link.lastChild.textContent = p.external ? " GitHub'da aç" : ' İlgili sayfaya git';
         if (modal) modal.show();
     }
 
@@ -148,6 +150,12 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     calendar.render();
     loadDay(new Date());
+
+    // GitHub commit'leri arka planda çekilir; yeni kayıt gelirse takvim yenilenir
+    fetch(<?= json_encode(admin_url('takvim/esitle'), JSON_UNESCAPED_SLASHES) ?>, { headers: { 'Accept': 'application/json' } })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { if (d && d.added > 0) { calendar.refetchEvents(); loadDay(currentDay); } })
+        .catch(function () {});
 
     [].forEach.call(filters, function (f) {
         f.addEventListener('change', function () { calendar.refetchEvents(); loadDay(currentDay); });

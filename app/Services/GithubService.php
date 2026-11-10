@@ -98,6 +98,15 @@ class GithubService
         ];
     }
 
+    /** Depodaki commit'ler (en yeni önce, en fazla 100) */
+    public function commits(string $fullName, ?string $since = null): array
+    {
+        if (!self::validRepo($fullName)) {
+            return [];
+        }
+        return $this->json('/repos/' . $fullName . '/commits?per_page=100' . ($since ? '&since=' . rawurlencode($since) : ''));
+    }
+
     private function json(string $endpoint): array
     {
         $data = json_decode($this->request($endpoint), true);
@@ -129,7 +138,6 @@ class GithubService
             $body = curl_exec($ch);
             $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $error = curl_error($ch);
-            curl_close($ch);
             if ($body === false) {
                 throw new RuntimeException('GitHub bağlantı hatası: ' . $error);
             }

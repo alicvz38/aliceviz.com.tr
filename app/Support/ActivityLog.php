@@ -6,6 +6,8 @@ use App\Core\Auth;
 use App\Core\Config;
 use App\Core\Database;
 use App\Core\Request;
+use App\Models\Setting;
+use App\Services\GithubService;
 use Throwable;
 
 /**
@@ -26,6 +28,7 @@ final class ActivityLog
         'eposta'  => ['E-posta', 'info', 'mail'],
         'ayar'    => ['Ayarlar', 'secondary', 'settings'],
         'oturum'  => ['Oturum', 'dark', 'user'],
+        'kod'     => ['Kod (GitHub)', 'danger', 'git-branch'],
     ];
 
     /** Günlüğe yazılmayan sık / önemsiz işlemler */
@@ -160,6 +163,90 @@ final class ActivityLog
         };
     }
 
+    // ---------------------------------------------------------------- Geçmiş ve GitHub
+
+    /** Tekrarsız kayıt (aynı ref ikinci kez eklenmez). true: yeni eklendi */
+    public static function record(string $category, string $title, ?string $detail, ?string $url, string $ref, string $createdAt): bool
+    {
+        try {
+            $stmt = Database::getInstance()->query(
+                'INSERT IGNORE INTO activity_log (category, title, detail, url, path, ref, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                [$category, mb_substr($title, 0, 255), $detail !== null ? mb_substr($detail, 0, 500) : null, $url, 'gecmis', mb_substr($ref, 0, 80), $createdAt]
+            );
+            return $stmt->rowCount() > 0;
+        } catch (Throwable) {
+            return false;
+        }
+    }
+
+    /** Bir kereliğine: yüklenen dosyaların tarihlerinden geçmiş (logo, favicon, paylaşım görseli, profil fotoğrafı, proje kapakları) */
+    public static function backfillUploads(): void
+    {
+        if (Setting::get('activity_backfill_files', '') === '1') {
+            return;
+        }
+        $files = [
+            'site_logo'    => ['Logo yüklendi', 'ayarlar/gorunum'],
+            'site_favicon' => ['Favicon yüklendi', 'ayarlar/gorunum'],
+            'seo_og_image' => ['Paylaşım görseli yüklendi', 'ayarlar/seo'],
+            'cv_avatar'    => ['Profil fotoğrafı yüklendi', 'ozgecmis'],
+        ];
+        foreach ($files as $key => [$title, $url]) {
+            $path = (string) Setting::get($key, '');
+            if ($path !== '' && is_file(ROOT_PATH . '/' . $path)) {
+                $time = (int) filemtime(ROOT_PATH . '/' . $path);
+                self::record($key === 'cv_avatar' ? 'icerik' : 'ayar', $title, null, $url, 'gecmis:dosya:' . $key . ':' . $time, date('Y-m-d H:i:s', $time));
+            }
+        }
+        foreach (Database::getInstance()->fetchAll("SELECT id, title, image FROM projects WHERE image IS NOT NULL AND image <> ''") as $p) {
+            $file = ROOT_PATH . '/' . ltrim((string) $p['image'], '/');
+            if (is_file($file)) {
+                $time = (int) filemtime($file);
+                self::record('proje', 'Proje kapak resmi yüklendi: ' . $p['title'], null, 'projeler/' . $p['id'] . '/duzenle', 'gecmis:kapak:' . $p['id'] . ':' . $time, date('Y-m-d H:i:s', $time));
+            }
+        }
+        Setting::set('activity_backfill_files', '1');
+    }
+
+    /**
+     * GitHub commit'leri ("Kod" kategorisi): projelere bağlı depolardaki commit'ler takvime eklenir.
+     * En fazla 10 dakikada bir GitHub'a sorulur; ilk seferde son 1 yılın commit'leri alınır.
+     * @return int yeni eklenen commit sayısı
+     */
+    public static function syncCommits(bool $force = false): int
+    {
+        $last = (int) Setting::get('activity_commits_synced', '0');
+        if (!$force && time() - $last < 600) {
+            return 0;
+        }
+        Setting::set('activity_commits_synced', (string) time());
+
+        $since = gmdate('Y-m-d\TH:i:s\Z', $last > 0 ? $last - 86400 : strtotime('-1 year'));
+        $github = new GithubService(Setting::get('github_token') ?: null);
+        $repos = array_column(Database::getInstance()->fetchAll(
+            "SELECT DISTINCT github_repo FROM projects WHERE github_repo IS NOT NULL AND github_repo <> ''"
+        ), 'github_repo');
+
+        $added = 0;
+        foreach ($repos as $repo) {
+            try {
+                foreach ($github->commits($repo, $since) as $c) {
+                    $message = trim((string) ($c['commit']['message'] ?? ''));
+                    $firstLine = strtok($message, "\n") ?: '(açıklamasız commit)';
+                    $date = $c['commit']['author']['date'] ?? $c['commit']['committer']['date'] ?? null;
+                    if (empty($c['sha']) || !$date) {
+                        continue;
+                    }
+                    $author = $c['author']['login'] ?? ($c['commit']['author']['name'] ?? '');
+                    $added += self::record('kod', $firstLine, $repo . ($author !== '' ? ' · ' . $author : ''),
+                        (string) ($c['html_url'] ?? ''), 'commit:' . $c['sha'], date('Y-m-d H:i:s', strtotime($date))) ? 1 : 0;
+                }
+            } catch (Throwable) {
+                // Depoya erişilemezse (silinmiş / özel / istek sınırı) diğerleriyle devam
+            }
+        }
+        return $added;
+    }
     // ---------------------------------------------------------------- Takvim sorguları
 
     /** Tarih aralığındaki kayıtlar (FullCalendar olay listesi için) */
