@@ -790,21 +790,31 @@ button.contact-line, a.contact-line { cursor: pointer; }
 [data-count] { font-variant-numeric: tabular-nums; }
 @media print { .odo-strip { transition: none !important; } }
 
-/* Buzlu cam: ana sayfa sayı kartları ve Hizmetler açılır menüsü (açık tonlu, yarı şeffaf, arkası bulanık) */
+/* Hizmet kartlarıyla aynı cam yapısı: ana sayfa sayı kartları ve Hizmetler açılır menüsü
+   (hafif şeffaf zemin + ince kenarlık + bulanıklık + sol üst köşeden yayılan renkli ışık) */
 .stats > div {
-    background: linear-gradient(160deg, rgba(255, 255, 255, .10), rgba(255, 255, 255, .04));
-    border-color: rgba(255, 255, 255, .14);
-    backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 10px 30px rgba(0, 0, 0, .18);
+    position: relative; overflow: hidden;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    transition: border-color .3s ease, transform .3s ease;
 }
+.stats > div::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(260px 140px at 0% 0%, color-mix(in srgb, var(--tone) 18%, transparent), transparent 70%); }
+.stats > div > * { position: relative; }
+.stats > div:nth-child(3n+1) { --tone: var(--accent); }
+.stats > div:nth-child(3n+2) { --tone: var(--purple); }
+.stats > div:nth-child(3n+3) { --tone: var(--rose); }
+.stats > div:hover { border-color: color-mix(in srgb, var(--tone) 50%, transparent); transform: translateY(-3px); }
+
 .nav-dropdown-menu {
-    background: linear-gradient(160deg, rgba(148, 163, 184, .16), rgba(148, 163, 184, .07));
-    border-color: rgba(255, 255, 255, .14);
-    backdrop-filter: blur(22px) saturate(160%); -webkit-backdrop-filter: blur(22px) saturate(160%);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 24px 48px rgba(0, 0, 0, .35);
+    background: radial-gradient(320px 180px at 0% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%),
+                radial-gradient(320px 200px at 100% 100%, color-mix(in srgb, var(--purple) 12%, transparent), transparent 70%),
+                rgba(11, 15, 25, .55);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, .35);
 }
-.nav-dropdown-item:hover { background: rgba(255, 255, 255, .09); }
-.nav-dropdown-item small { color: #b6c2d4; }
+.nav-dropdown-item:hover { background: rgba(255, 255, 255, .06); }
 /* Üst menünün bulanıklığı ::before'a taşındı: menünün kendisinde backdrop-filter olunca
    içindeki açılır menünün bulanıklığı çalışmıyordu (tarayıcı kısıtı) */
 .navbar.scrolled { backdrop-filter: none; -webkit-backdrop-filter: none; background: transparent; }
