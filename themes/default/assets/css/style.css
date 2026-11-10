@@ -585,6 +585,11 @@ body.has-chat .ajax-toast-stack { bottom: 96px; }
 button.contact-line, a.contact-line { cursor: pointer; }
 .contact-line small { display: block; color: var(--muted); font-size: .76rem; }
 .contact-line-icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; color: var(--accent); background: rgba(56, 189, 248, .1); flex-shrink: 0; }
+.contact-line-wa .contact-line-main { display: flex; gap: .8rem; align-items: center; flex: 1; min-width: 0; color: inherit; text-decoration: none; }
+.contact-line-icon.is-wa { color: #25d366; background: rgba(37, 211, 102, .12); }
+.contact-line-wa .contact-line-main:hover .contact-line-icon.is-wa { background: rgba(37, 211, 102, .22); }
+.contact-call { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; color: var(--text-2); border: 1px solid var(--border); flex-shrink: 0; transition: .2s; }
+.contact-call:hover { color: var(--accent); border-color: rgba(56, 189, 248, .5); }
 
 /* ==========================================================
    Hakkımda — Özgeçmiş (CV)
@@ -675,20 +680,63 @@ button.contact-line, a.contact-line { cursor: pointer; }
 .footer-col a:hover, .footer-link:hover { color: var(--accent); }
 
 /* Yazdırma: özgeçmiş temiz bir CV olarak çıksın */
+/* Özgeçmiş — Yazdır / PDF: tek A4 sayfasına sığan sıkı, açık renkli düzen */
 @media print {
-    @page { margin: 14mm; }
+    @page { size: A4; margin: 10mm 12mm; }
+    html { font-size: 9.6pt; }
     body { background: #fff !important; color: #111 !important; }
     .page-bg, .navbar, .site-footer, .no-print, .toast, .flash-stack { display: none !important; }
     .section { padding: 0 !important; }
-    .glass { background: none !important; border: 1px solid #ddd !important; backdrop-filter: none !important; box-shadow: none !important; }
-    .cv-grid { grid-template-columns: 1.7fr 1fr !important; }
-    .cv-header { grid-template-columns: auto 1fr !important; text-align: left !important; }
-    .cv-identity h1, .cv-block h2, .timeline-head h3, .skill-head, .lang-list span { color: #111 !important; }
-    .cv-summary, .timeline-org, .timeline-item p, .cv-contact, .cv-stats dt, .lang-list small, .cert-list small { color: #444 !important; }
-    .cv-block, .timeline-item { break-inside: avoid; }
-    .skill-bar span { width: var(--w) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .cv-avatar, .lang-dots i.on, .timeline::before { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    a { color: inherit !important; }
+    .container { max-width: none !important; padding: 0 !important; }
+    .glass { background: none !important; border: 1px solid #dcdfe4 !important; border-radius: 10px !important; backdrop-filter: none !important; box-shadow: none !important; transform: none !important; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    /* Üst bilgi: fotoğraf + kimlik yan yana, iletişim sola dayalı */
+    .cv-header { grid-template-columns: auto 1fr !important; gap: 1.1rem !important; padding: .9rem 1.1rem !important; text-align: left !important; justify-items: start !important; }
+    .cv-avatar { width: 80px; height: 80px; padding: 3px; }
+    .cv-avatar span { background: #f1f5f9 !important; color: #111; font-size: 1.6rem; }
+    .cv-identity h1 { font-size: 1.95rem; }
+    .cv-job { font-size: 1.02rem; margin-top: 0; color: #0284c7 !important; }
+    .cv-available { margin-bottom: .3rem; font-size: .72rem; padding: .08rem .55rem; color: #15803d !important; }
+    .cv-available i { animation: none; box-shadow: none; }
+    .cv-contact { justify-content: flex-start !important; margin-top: .45rem; gap: .15rem 1.1rem; font-size: .84rem; }
+
+    /* Sayılar: tek satırlık ince şerit */
+    .cv-stats { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: .5rem; margin: .6rem 0; }
+    .cv-stats > div { padding: .35rem .6rem; flex-direction: row-reverse; justify-content: center; align-items: baseline; gap: .45rem; }
+    .cv-stats dd { font-size: 1.15rem; color: #111; }
+    .cv-stats dt { font-size: .76rem; }
+
+    .cv-grid { grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr) !important; gap: .65rem; }
+    .cv-main, .cv-side { gap: .65rem; }
+    .cv-block { padding: .8rem 1rem !important; }
+    .cv-block h2 { font-size: 1rem; margin-bottom: .5rem; }
+    .cv-block h2 svg { color: #0284c7; width: 15px; height: 15px; }
+    .cv-summary { font-size: .9rem; line-height: 1.55; font-weight: 400; }
+
+    .timeline { padding-left: 1.2rem; }
+    .timeline-item { padding-bottom: .65rem; }
+    .timeline-item::before { left: -1.2rem; width: 10px; height: 10px; top: 5px; background: #fff; }
+    .timeline-item.current::before { background: #38bdf8; box-shadow: none; }
+    .timeline-head h3 { font-size: .95rem; }
+    .timeline-date { font-size: .74rem; color: #0284c7 !important; }
+    .timeline-org { font-size: .84rem; }
+    .timeline-duration { border-color: #dcdfe4; }
+    .timeline-item p { margin-top: .15rem; font-size: .84rem; line-height: 1.5; }
+
+    .skill-group { margin: .5rem 0 .25rem; font-size: .66rem; }
+    .skill-list { gap: .32rem; }
+    .skill-head { font-size: .83rem; }
+    .skill-bar { height: 4px; margin-top: .15rem; background: #e5e7eb !important; }
+    .skill-bar span { width: var(--w) !important; transition: none; }
+    .lang-list, .cert-list { gap: .4rem; }
+    .lang-dots i { width: 8px; height: 8px; background: #e5e7eb; }
+    .lang-dots i.on { background: #38bdf8; }
+
+    .cv-identity h1, .cv-block h2, .timeline-head h3, .skill-head, .lang-list span, .cert-list strong { color: #111 !important; }
+    .cv-summary, .timeline-org, .timeline-item p, .cv-contact, .cv-stats dt, .lang-list small, .cert-list small, .skill-group, .skill-head small { color: #475569 !important; }
+    .cv-block, .timeline-item, .skill-list li, .lang-list li { break-inside: avoid; }
+    a { color: inherit !important; text-decoration: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

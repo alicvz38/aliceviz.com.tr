@@ -14,7 +14,7 @@ class SettingController extends AdminController
     private const KEYS = [
         'site_title', 'site_domain', 'site_description', 'contact_email',
         'github_username', 'social_instagram', 'social_facebook', 'social_x', 'social_youtube', 'social_linkedin',
-        'maintenance_message', 'site_theme',
+        'maintenance_message', 'site_theme', 'whatsapp_message',
     ];
 
     public function index(): void
@@ -47,6 +47,7 @@ class SettingController extends AdminController
             $this->backAdmin('ayarlar', 'Telefon numarası geçersiz.', ['cv_phone' => '0 (5XX) XXX XX XX biçiminde eksiksiz girin.']);
         }
         $values['cv_phone'] = (string) $phone;
+        $values['whatsapp_message'] = trim(mb_substr($values['whatsapp_message'], 0, 500));
         if ($values['github_username'] !== '' && !GithubService::validUsername($values['github_username'])) {
             $this->backAdmin('ayarlar', 'GitHub kullanıcı adı geçersiz.');
         }
@@ -60,6 +61,7 @@ class SettingController extends AdminController
         }
 
         Setting::setMany($values);
+        Setting::set('whatsapp_enabled', $this->request->post('whatsapp_enabled') ? '1' : '0');
         Setting::set('maintenance_mode', $this->request->post('maintenance_mode') ? '1' : '0');
 
         // Token yalnızca yeni değer girilirse değişir; "sil" işaretlenirse kaldırılır

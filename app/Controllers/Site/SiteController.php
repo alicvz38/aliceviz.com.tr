@@ -31,6 +31,10 @@ abstract class SiteController extends Controller
             'job'         => setting('cv_title', ''),
             'location'    => setting('cv_location', ''),
             'phone'       => setting('cv_phone', ''),
+            // Telefon WhatsApp'a bağlıysa hazır mesajlı sohbet bağlantısı (panel > Site Ayarları)
+            'whatsapp'    => setting('whatsapp_enabled', '1') === '1'
+                ? whatsapp_href(setting('cv_phone', ''), setting('whatsapp_message', ''))
+                : '',
             'available'   => setting('cv_available', '1') === '1',
             'avatar'      => $avatar !== '' ? (preg_match('#^https?://#', $avatar) ? $avatar : url($avatar)) : '',
             'social'      => [

@@ -94,6 +94,22 @@ function phone_href(?string $value): string
     return $digits !== '' ? 'tel:+90' . $digits : '';
 }
 
+/**
+ * WhatsApp sohbet bağlantısı: "0 (532) 123 45 67" -> "https://wa.me/905321234567?text=..."
+ * Telefonda WhatsApp uygulamasını, bilgisayarda WhatsApp Web'i açar.
+ */
+function whatsapp_href(?string $value, string $text = ''): string
+{
+    $digits = ltrim(preg_replace('/\D/', '', (string) $value), '0');
+    if (str_starts_with($digits, '90') && strlen($digits) > 10) {
+        $digits = substr($digits, 2);
+    }
+    if ($digits === '') {
+        return '';
+    }
+    return 'https://wa.me/90' . $digits . ($text !== '' ? '?text=' . rawurlencode($text) : '');
+}
+
 /** "2023-04" -> "Nisan 2023" */
 function month_label(?string $ym): string
 {

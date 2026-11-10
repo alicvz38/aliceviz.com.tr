@@ -38,6 +38,15 @@ $s = static fn (string $key) => old($key, $settings[$key] ?? '');
                         <div class="form-text">İletişim sayfasında, alt bilgide ve özgeçmişte görünür. Boş bırakılırsa gösterilmez.</div>
                     </div>
                     <div class="col-12 mb-3">
+                        <div class="switch form-switch-custom switch-inline form-switch-success mb-2 d-block">
+                            <input class="switch-input" type="checkbox" role="switch" id="whatsapp_enabled" name="whatsapp_enabled" value="1" <?= old('whatsapp_enabled', $settings['whatsapp_enabled'] ?? '1') === '1' ? 'checked' : '' ?>>
+                            <label class="switch-label" for="whatsapp_enabled"><?= icon('whatsapp', 15) ?> Telefonu WhatsApp'a bağla</label>
+                        </div>
+                        <label class="form-label" for="whatsapp_message">WhatsApp hazır mesajı</label>
+                        <textarea class="form-control" id="whatsapp_message" name="whatsapp_message" rows="2" maxlength="500" placeholder="Merhaba, <?= e($s('site_domain') ?: 'sitenizden') ?> üzerinden ulaşıyorum."><?= e($s('whatsapp_message')) ?></textarea>
+                        <div class="form-text">Ziyaretçi İletişim sayfasında numaranıza dokununca WhatsApp bu mesaj yazılı olarak açılır; göndermeden önce değiştirebilir. Boş bırakılırsa mesajsız açılır.</div>
+                    </div>
+                    <div class="col-12 mb-3">
                         <div class="form-text">
                             "Hakkımda" yazısı ve özgeçmiş bilgileri artık
                             <a href="<?= e(admin_url('ozgecmis')) ?>">Özgeçmiş (CV)</a> sayfasından düzenlenir.

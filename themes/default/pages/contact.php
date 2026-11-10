@@ -69,7 +69,15 @@ $this->layout('main');
                         <span><small>E-posta (kopyalamak için tıklayın)</small><?= e($site['email']) ?></span>
                     </button>
                 <?php endif; ?>
-                <?php if ($site['phone']): ?>
+                <?php if ($site['phone'] && $site['whatsapp']): ?>
+                    <div class="contact-line contact-line-wa">
+                        <a class="contact-line-main" href="<?= e($site['whatsapp']) ?>" target="_blank" rel="noopener">
+                            <span class="contact-line-icon is-wa"><?= icon('whatsapp', 19) ?></span>
+                            <span><small>WhatsApp (yazmak için dokunun)</small><?= e($site['phone']) ?></span>
+                        </a>
+                        <a class="contact-call" href="<?= e(phone_href($site['phone'])) ?>" title="Ara" aria-label="Telefonla ara"><?= icon('phone', 16) ?></a>
+                    </div>
+                <?php elseif ($site['phone']): ?>
                     <a class="contact-line" href="<?= e(phone_href($site['phone'])) ?>">
                         <span class="contact-line-icon"><?= icon('phone', 18) ?></span>
                         <span><small>Telefon (aramak için dokunun)</small><?= e($site['phone']) ?></span>
