@@ -78,7 +78,61 @@ class GithubService
                 return '';
             }
         });
-        return $html !== '' ? $html : null;
+        return $html !== '' ? self::absolutizeLinks($html, $fullName) : null;
+    }
+
+    /**
+     * README'deki göreli bağlantılar GitHub'a göre yazılır ("LICENSE", "dist/", "../../releases/latest").
+     * Sitede gösterilince site adresine göre açılıp 404 vermesin diye GitHub'daki tam adrese çevrilir;
+     * göreli resimler ham dosya adresine çevrilir. Dış bağlantılar yeni sekmede açılır.
+     */
+    public static function absolutizeLinks(string $html, string $fullName): string
+    {
+        $resolve = static function (string $base, string $relative): string {
+            // $base: "https://host/a/b/c/" — RFC 3986'ya uygun basit göreli yol çözümü
+            [$scheme, $rest] = explode('://', $base, 2);
+            [$host, $path] = array_pad(explode('/', $rest, 2), 2, '');
+            $suffix = '';
+            if (preg_match('/^([^?#]*)([?#].*)$/', $relative, $m)) {
+                [$relative, $suffix] = [$m[1], $m[2]];
+            }
+            $segments = str_starts_with($relative, '/') ? [] : array_slice(explode('/', $path), 0, -1);
+            foreach (explode('/', ltrim($relative, '/')) as $seg) {
+                if ($seg === '..') {
+                    array_pop($segments);
+                } elseif ($seg !== '.' && $seg !== '') {
+                    $segments[] = $seg;
+                }
+            }
+            if (str_ends_with($relative, '/')) {
+                $segments[] = '';
+            }
+            return $scheme . '://' . $host . '/' . implode('/', $segments) . $suffix;
+        };
+
+        // README depo kökünde: bağlantılar /blob/HEAD/'a göre (GitHub varsayılan dala ve klasörlere yönlendirir)
+        $linkBase = 'https://github.com/' . $fullName . '/blob/HEAD/';
+        $rawBase = 'https://raw.githubusercontent.com/' . $fullName . '/HEAD/';
+
+        $html = preg_replace_callback('/(<a\b[^>]*?\bhref=")([^"]*)(")/i', static function (array $m) use ($resolve, $linkBase): string {
+            $href = html_entity_decode($m[2], ENT_QUOTES);
+            if ($href === '' || $href[0] === '#' || preg_match('#^(https?:|mailto:|tel:|//)#i', $href)) {
+                return $m[0];
+            }
+            return $m[1] . htmlspecialchars($resolve($linkBase, $href), ENT_QUOTES) . $m[3];
+        }, $html) ?? $html;
+
+        $html = preg_replace_callback('/(<img\b[^>]*?\bsrc=")([^"]*)(")/i', static function (array $m) use ($resolve, $rawBase): string {
+            $src = html_entity_decode($m[2], ENT_QUOTES);
+            if ($src === '' || preg_match('#^(https?:|data:|//)#i', $src)) {
+                return $m[0];
+            }
+            return $m[1] . htmlspecialchars($resolve($rawBase, $src), ENT_QUOTES) . $m[3];
+        }, $html) ?? $html;
+
+        // Dış bağlantılar (GitHub vb.) yeni sekmede; zaten target verilmişse dokunulmaz
+        return preg_replace_callback('/<a\b(?![^>]*\btarget=)([^>]*\bhref="https?:[^"]*"[^>]*)>/i',
+            static fn (array $m): string => '<a' . $m[1] . ' target="_blank" rel="noopener">', $html) ?? $html;
     }
 
     /** GitHub depo verisini proje alanlarına dönüştürür */
