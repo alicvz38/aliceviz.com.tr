@@ -83,7 +83,7 @@ $this->layout('main');
                                             <span class="mail-file-ext" style="background:<?= e($color) ?>"><?= e($ext) ?></span>
                                             <div style="min-width:0">
                                                 <div class="text-white fw-semibold text-truncate" style="max-width:240px" title="<?= e($f['name']) ?>"><?= e($f['name']) ?></div>
-                                                <small class="text-muted"><?= e(MailAttachments::human((int) $f['size'])) ?></small>
+                                                <small class="text-muted"><?= e(MailAttachments::human((int) $f['size'])) ?> · <?= e(format_date($f['created_at'], 'd.m.Y H:i')) ?></small>
                                             </div>
                                         </div>
                                     </td>
@@ -91,10 +91,10 @@ $this->layout('main');
                                         <?php if ($pending): ?>
                                             <span class="text-muted small">Gönderilmedi (formda kaldı)</span>
                                         <?php else: ?>
-                                            <div class="small text-white"><?= e($f['recipient'] ?: $f['email']) ?></div>
+                                            <?php if ($f['recipient']): ?><div class="small text-white fw-semibold"><?= e($f['recipient']) ?></div><?php endif; ?>
+                                            <div class="small text-white"><?= e((string) $f['email']) ?></div>
                                             <a href="<?= e(admin_url('mesajlar/' . $f['message_id'])) ?>" class="small"><?= e(str_limit((string) $f['subject'], 40)) ?></a>
                                         <?php endif; ?>
-                                        <div class="small text-muted"><?= e(format_date($f['created_at'], 'd.m.Y H:i')) ?></div>
                                     </td>
                                     <td class="text-end"><?= (int) $f['downloads'] ?></td>
                                     <td>
