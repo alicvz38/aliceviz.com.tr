@@ -15,6 +15,8 @@ use App\Core\Config;
 $router->get('robots.txt', [Site\SeoController::class, 'robots']);
 $router->get('sitemap.xml', [Site\SeoController::class, 'sitemap']);
 $router->get('ads.txt', [Site\SeoController::class, 'adsTxt']);
+// E-postadaki büyük dosyaların indirme bağlantısı (30 gün geçerli)
+$router->get('dosya/{token}', [Site\FileController::class, 'download']);
 
 // ------------------------------------------------------------
 // ZİYARETÇİ TARAFI (bakım modu kontrolünden geçer)
@@ -130,6 +132,8 @@ $router->group($admin, ['auth'], function ($r) {
     $r->post('mesajlar/gonder', [Admin\MessageController::class, 'send']);    $r->get('mesajlar/ayarlar', [Admin\MessageController::class, 'settings']);
     $r->post('mesajlar/ayarlar', [Admin\MessageController::class, 'saveSettings']);
     $r->post('mesajlar/ayarlar/test', [Admin\MessageController::class, 'testSettings']);
+    $r->post('mesajlar/ek', [Admin\MessageController::class, 'uploadChunk']);
+    $r->post('mesajlar/ek/{token}/sil', [Admin\MessageController::class, 'discardAttachment']);
     $r->get('mesajlar/{id}', [Admin\MessageController::class, 'show']);
     $r->post('mesajlar/{id}/yildiz', [Admin\MessageController::class, 'star']);
     $r->post('mesajlar/{id}/okundu', [Admin\MessageController::class, 'markRead']);

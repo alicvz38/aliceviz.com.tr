@@ -78,6 +78,7 @@ $quoted = "\n\n\n" . $signature . "\n\n"
                 <div class="mb-3">
                     <textarea class="form-control" id="body" name="body" rows="10" required><?= e($isInbox ? $quoted : "\n\n" . $signature) ?></textarea>
                 </div>
+                <?= $this->partial('mail-attachments') ?>
                 <button type="submit" class="btn btn-primary" <?= $configured ? '' : 'disabled' ?>><?= icon('send', 16) ?> Gönder</button>
             </form>
         </div>

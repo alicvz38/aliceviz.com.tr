@@ -56,7 +56,7 @@ class Mailer
     }
 
     /**
-     * @param array{name?: string, reply_to?: string, reply_name?: string, html?: string} $options
+     * @param array{name?: string, reply_to?: string, reply_name?: string, html?: string, attachments?: array<array{path: string, name: string, mime?: string}>} $options
      * @return string Gönderilen e-postanın Message-ID'si (Gmail kopyasıyla eşleştirmek için)
      * @throws RuntimeException
      */
@@ -76,6 +76,11 @@ class Mailer
 
         try {
             $this->connect();
+            if (!empty($options['attachments'])) {
+                // Ekli e-postada veri büyüktür; sunucunun alma/tarama süresi için daha uzun bekle
+                stream_set_timeout($this->socket, 180);
+                @set_time_limit(300);
+            }
             $this->command('MAIL FROM:<' . $this->fromEmail . '>', [250]);
             $this->command('RCPT TO:<' . $to . '>', [250, 251]);
             $this->command('DATA', [354]);
@@ -204,6 +209,29 @@ class Mailer
             . "Content-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n"
             . chunk_split(base64_encode($html)) . "\r\n"
             . "--{$boundary}--";
+
+        // Dosya ekleri: metin + HTML bölümü "multipart/mixed" içine alınır, her dosya ayrı bölüm olur
+        $files = array_filter((array) ($o['attachments'] ?? []), static fn ($a) => is_array($a) && is_file((string) ($a['path'] ?? '')));
+        if ($files) {
+            $mixed = 'm' . bin2hex(random_bytes(12));
+            foreach ($headers as $i => $h) {
+                if (str_starts_with($h, 'Content-Type: multipart/alternative')) {
+                    $headers[$i] = 'Content-Type: multipart/mixed; boundary="' . $mixed . '"';
+                }
+            }
+            $out = "--{$mixed}\r\nContent-Type: multipart/alternative; boundary=\"{$boundary}\"\r\n\r\n" . $body . "\r\n";
+            foreach ($files as $a) {
+                $name = str_replace(['"', "\r", "\n"], '', (string) $a['name']);
+                $mime = preg_match('#^[a-z0-9.+-]+/[a-z0-9.+-]+$#i', (string) ($a['mime'] ?? '')) ? $a['mime'] : 'application/octet-stream';
+                $enc = self::encode($name);
+                $out .= "--{$mixed}\r\n"
+                    . "Content-Type: {$mime}; name=\"{$enc}\"\r\n"
+                    . "Content-Transfer-Encoding: base64\r\n"
+                    . "Content-Disposition: attachment; filename=\"{$enc}\"; filename*=UTF-8''" . rawurlencode($name) . "\r\n\r\n"
+                    . chunk_split(base64_encode((string) file_get_contents($a['path']))) . "\r\n";
+            }
+            $body = $out . "--{$mixed}--";
+        }
 
         return implode("\r\n", $headers) . "\r\n\r\n" . $body;
     }

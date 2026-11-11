@@ -17,6 +17,8 @@
 /storage/*.log.1
 /storage/realtime.json
 /storage/realtime.stop
+# E-posta ekleri (panelden gönderilen dosyalar)
+/storage/mail-files/
 
 # Yüklenen görseller (proje kapakları, profil fotoğrafı)
 /uploads/projects/*

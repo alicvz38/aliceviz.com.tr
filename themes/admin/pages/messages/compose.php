@@ -53,6 +53,7 @@ if (!empty($draftBody)) {
                 <textarea class="form-control" id="body" name="body" rows="14" required><?= e($body) ?></textarea>
                 <div class="form-text">Düz metin olarak yazın; bağlantılar otomatik tıklanabilir olur.</div>
             </div>
+            <?= $this->partial('mail-attachments') ?>
             <button type="submit" class="btn btn-primary" <?= $configured ? '' : 'disabled' ?>><?= icon('send', 16) ?> Gönder</button>
         </form>
     </div>

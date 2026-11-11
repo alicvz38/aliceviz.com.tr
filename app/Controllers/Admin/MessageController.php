@@ -141,10 +141,36 @@ class MessageController extends AdminController
         $record['source'] = 'panel';
         $parentMsg = $parentId ? Message::find($parentId) : null;
 
+        // Dosyalar: toplamı küçük olanlar ek olarak, büyükler indirme bağlantısıyla gider
+        \App\Services\MailAttachments::cleanup();
+        $files = \App\Services\MailAttachments::pending((array) $r->post('attachments', []));
+        [$inline, $links] = \App\Services\MailAttachments::plan($files);
+        $mailBody = $body;
+        if ($links) {
+            $mailBody .= "
+
+—
+Dosyalar (indirme bağlantısı, " . \App\Services\MailAttachments::LINK_DAYS . " gün geçerli):
+";
+            foreach ($links as $f) {
+                $mailBody .= '• ' . $f['name'] . ' (' . \App\Services\MailAttachments::human((int) $f['size']) . '): ' . \App\Services\MailAttachments::url($f) . "
+";
+            }
+        }
+        if ($files) {
+            // Paneldeki kopyada hangi dosyaların gittiği görünür
+            $record['body'] = $mailBody . ($inline ? "
+
+[Ekler: " . implode(', ', array_map(static fn ($f) => $f['name'] . ' (' . \App\Services\MailAttachments::human((int) $f['size']) . ')', $inline)) . ']' : '');
+        }
+
         try {
-            $messageId = (new Mailer())->send($to, $subject, $body, [
+            $messageId = (new Mailer())->send($to, $subject, $mailBody, [
                 'name'        => $name,
                 'in_reply_to' => $parentMsg?->message_id ?: null,
+                'attachments' => array_map(static fn ($f) => [
+                    'path' => \App\Services\MailAttachments::absPath($f), 'name' => $f['name'], 'mime' => $f['mime'],
+                ], $inline),
             ]);
         } catch (RuntimeException $e) {
             Message::create($record + ['send_status' => 'failed', 'send_error' => mb_substr($e->getMessage(), 0, 500)]);
@@ -153,6 +179,9 @@ class MessageController extends AdminController
 
         // Message-ID saklanır: Gmail "Gönderilmiş" kopyası senkronize edilince çift kayıt oluşmaz
         $id = Message::create($record + ['send_status' => 'sent', 'message_id' => $messageId]);
+        if ($files) {
+            \App\Services\MailAttachments::attach($inline, $links, (int) $id);
+        }
         if ($parentId) {
             Message::updateById($parentId, ['replied_at' => date('Y-m-d H:i:s'), 'is_read' => 1]);
         }
@@ -166,6 +195,35 @@ class MessageController extends AdminController
             'id'   => $id,
             'html' => $this->view->partial('message-bubble', ['m' => Message::find($id)]),
         ]);
+    }
+
+    /** Ek dosya yükleme (parça parça; 256 MB'a kadar) */
+    public function uploadChunk(): void
+    {
+        $r = $this->request;
+        $file = $r->file('chunk');
+        if (!$file) {
+            Response::error('Dosya parçası alınamadı.');
+        }
+        try {
+            $done = \App\Services\MailAttachments::receiveChunk(
+                (string) $r->post('upload_id', ''),
+                (int) $r->post('offset', 0),
+                (int) $r->post('total', 0),
+                (string) $r->post('name', 'dosya'),
+                $file
+            );
+        } catch (RuntimeException $e) {
+            Response::error($e->getMessage());
+        }
+        $this->json(['ok' => true, 'done' => $done !== null, 'file' => $done]);
+    }
+
+    /** Gönderilmeden önce eki kaldır */
+    public function discardAttachment(string $token): void
+    {
+        \App\Services\MailAttachments::discard($token);
+        $this->json(['ok' => true]);
     }
 
     /**
