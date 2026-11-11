@@ -285,20 +285,25 @@ final class MailAttachments
             [$ext, $color] = self::badge((string) $f['name']);
             $url = htmlspecialchars(self::url($f), ENT_QUOTES, 'UTF-8');
             $name = htmlspecialchars((string) $f['name'], ENT_QUOTES, 'UTF-8');
+            $btn = '<span style="display:inline-block;padding:8px 14px;border-radius:8px;background:#6366f1;background-image:linear-gradient(135deg,#22d3ee,#a855f7);color:#ffffff;font:bold 13px Arial,Helvetica,sans-serif;white-space:nowrap">&#11015; İndir</span>';
             $h .= '<a href="' . $url . '" style="display:block;text-decoration:none;color:inherit;margin-bottom:8px">'
                 . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #2a3550;border:1px solid rgba(255,255,255,.13);border-radius:12px;background:#0f172a;background:rgba(255,255,255,.06);border-collapse:separate" bgcolor="#0f172a">'
                 . '<tr>'
-                . '<td width="64" style="padding:12px 0 12px 12px;vertical-align:middle">'
+                . '<td width="64" class="fc-ico" style="padding:12px 0 12px 12px;vertical-align:middle">'
                 . '<div style="width:46px;height:46px;border-radius:8px;background:' . $color . ';color:#ffffff;font:bold 12px/46px Arial,Helvetica,sans-serif;text-align:center;letter-spacing:.5px">' . htmlspecialchars($ext, ENT_QUOTES, 'UTF-8') . '</div>'
                 . '</td>'
-                . '<td style="padding:12px;vertical-align:middle;font-family:Arial,Helvetica,sans-serif">'
-                . '<div style="font-size:14px;font-weight:bold;color:#f1f5f9;word-break:break-all">' . $name . '</div>'
+                . '<td class="fc-info" style="padding:12px;vertical-align:middle;font-family:Arial,Helvetica,sans-serif">'
+                . '<div style="font-size:14px;font-weight:bold;color:#f1f5f9;word-break:break-word;overflow-wrap:anywhere">' . $name . '</div>'
                 . '<div style="font-size:12px;color:#94a3b8;margin-top:3px">' . self::human((int) $f['size']) . '</div>'
                 . '</td>'
-                . '<td width="90" align="right" style="padding:12px 14px 12px 0;vertical-align:middle">'
-                . '<span style="display:inline-block;padding:8px 14px;border-radius:8px;background:#6366f1;background-image:linear-gradient(135deg,#22d3ee,#a855f7);color:#ffffff;font:bold 13px Arial,Helvetica,sans-serif;white-space:nowrap">&#11015; İndir</span>'
-                . '</td>'
-                . '</tr></table></a>';
+                // Masaüstü: düğme yanda (telefonda gizlenir)
+                . '<td width="90" align="right" class="fc-btn" style="padding:12px 14px 12px 0;vertical-align:middle">' . $btn . '</td>'
+                . '</tr>'
+                // Telefon: düğme dosya adının altında, tam genişlik (masaüstünde gizli; ekran kuralı açar)
+                . '<tr class="fc-row-m" style="display:none;mso-hide:all"><td colspan="3" style="padding:0 12px 12px;mso-hide:all">'
+                . '<div style="display:block;text-align:center;padding:10px 14px;border-radius:8px;background:#6366f1;background-image:linear-gradient(135deg,#22d3ee,#a855f7);color:#ffffff;font:bold 14px Arial,Helvetica,sans-serif">&#11015; İndir</div>'
+                . '</td></tr>'
+                . '</table></a>';
         }
         return $h . '</div>';
     }

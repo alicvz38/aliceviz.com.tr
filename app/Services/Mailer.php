@@ -300,13 +300,22 @@ class Mailer
 
         return '<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             . '<meta name="color-scheme" content="dark"><meta name="supported-color-schemes" content="dark">'
-            . '<style>:root{color-scheme:dark}a{color:#22d3ee}</style></head>'
+            . '<style>:root{color-scheme:dark}a{color:#22d3ee}'
+            // Küçük ekran: "İndir" düğmesi dosya adının altına iner, ad tam genişlikte okunur; kenar boşlukları daralır
+            . '@media only screen and (max-width:520px){'
+            . '.fc-btn{display:none!important;width:0!important;max-height:0!important;overflow:hidden!important}'
+            . '.fc-row-m{display:table-row!important}'
+            . '.fc-info{padding:12px 12px 10px 4px!important}'
+            . '.em-panel{padding:22px 14px 20px!important}'
+            . '.em-body{padding:22px 18px 20px!important}'
+            . '}'
+            . '</style></head>'
             . '<body style="margin:0;padding:0;background-color:#0b0f19' . ($bg !== '' ? ';background-image:url(' . $esc($bg) . ');background-repeat:repeat' : '') . '" bgcolor="#0b0f19">'
             . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0b0f19"' . ($bg !== '' ? ' background="' . $esc($bg) . '"' : '') . ' style="background-color:#0b0f19' . ($bg !== '' ? ';background-image:url(' . $esc($bg) . ');background-repeat:repeat' : '') . '">'
             . '<tr><td align="center" style="padding:28px 12px">'
             // Orta panel (resimli)
             . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0b0f19"' . ($cover !== '' ? ' background="' . $esc($cover) . '"' : '') . ' style="' . $panel . '">'
-            . '<tr><td style="padding:30px 26px 26px">'
+            . '<tr><td class="em-panel" style="padding:30px 26px 26px">'
             // Üst: logo + alan adı
             . '<a href="' . $esc($site) . '" style="text-decoration:none"><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px"><tr>'
             . '<td width="34" height="34" align="center" bgcolor="#1e293b" style="width:34px;height:34px;border-radius:10px;background:#1e293b;background-image:linear-gradient(135deg,#22d3ee,#a855f7);color:#ffffff;font:bold 14px/34px Consolas,monospace">&lt;&gt;</td>'
@@ -315,7 +324,7 @@ class Mailer
             // Cam kart: metin + dosyalar
             . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#111827" style="' . $glass . '"><tr><td style="padding:0">'
             . '<div style="height:4px;line-height:4px;font-size:0;border-radius:18px 18px 0 0;background:#22d3ee;background-image:linear-gradient(90deg,#22d3ee,#6366f1,#a855f7)">&nbsp;</div>'
-            . '<div style="padding:28px 28px 26px;color:#e2e8f0;font-family:' . $font . ';font-size:15px;line-height:1.7">' . $content . '</div>'
+            . '<div class="em-body" style="padding:28px 28px 26px;color:#e2e8f0;font-family:' . $font . ';font-size:15px;line-height:1.7">' . $content . '</div>'
             . '</td></tr></table>'
             // İmza + bağlantılar (panelin içinde, kartın altında)
             . ($sign !== '' ? '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding:22px 0 4px">' . $sign . '</td></tr></table>' : '')
