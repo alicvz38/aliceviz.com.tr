@@ -38,6 +38,7 @@
         </div>
     </div>
     <div class="container footer-bottom">
-        &copy; <?= date('Y') ?> <a href="<?= e(url()) ?>"><?= e($site['domain'] ? 'www.' . $site['domain'] : $site['title']) ?></a> &mdash; Tüm hakları saklıdır.
+        <span>&copy; <?= date('Y') ?> <a href="<?= e(url()) ?>"><?= e($site['domain'] ? 'www.' . $site['domain'] : $site['title']) ?></a> &mdash; Tüm hakları saklıdır.</span>
+        <span class="footer-legal"><a href="<?= e(url('cerez-politikasi')) ?>">Çerez Politikası</a> · <button type="button" class="footer-link" data-cookie-open>Çerez Ayarları</button></span>
     </div>
 </footer>

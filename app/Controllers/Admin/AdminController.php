@@ -43,6 +43,7 @@ abstract class AdminController extends Controller
             ['heading' => 'GENEL'],
             ['label' => 'Gösterge Paneli', 'icon' => 'home', 'path' => '', 'exact' => true],
             ['label' => 'Takvim', 'icon' => 'calendar', 'path' => 'takvim'],
+            ['label' => 'İstatistikler', 'icon' => 'bar-chart-2', 'path' => 'istatistikler'],
 
             ['heading' => 'MÜŞTERİLER'],
             ['label' => 'Canlı Destek', 'icon' => 'message-square', 'path' => 'canli-destek', 'badge' => \App\Models\ChatConversation::countUnread(), 'badge_id' => 'badge-chat'],

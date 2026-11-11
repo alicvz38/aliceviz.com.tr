@@ -5,6 +5,7 @@ namespace App\Controllers\Site;
 use App\Core\Config;
 use App\Core\Controller;
 use App\Support\ServiceCatalog;
+use App\Support\Stats;
 
 /**
  * Ziyaretçi tarafı denetleyicilerinin tabanı.
@@ -49,6 +50,15 @@ abstract class SiteController extends Controller
         $this->view->share('services', ServiceCatalog::all());
         // Bakım modunda giriş yapmış yönetici siteyi görebilir; bunu ona belirten çubuk gösterilir
         $this->view->share('adminMaintenanceBar', \App\Core\Auth::check() && \App\Models\Setting::isMaintenance());
+    }
+
+    /** Her başarılı sayfa görüntülemesi istatistiğe yazılır (günlük tekil; AJAX, hata ve bakım sayfaları hariç) */
+    protected function render(string $page, array $data = [], int $status = 200): void
+    {
+        if ($status === 200 && !\App\Core\Request::isAjax()) {
+            Stats::page($this->request->path());
+        }
+        parent::render($page, $data, $status);
     }
 
     /** Aynı oturumdan çok sık form gönderimini engeller (saniye) */

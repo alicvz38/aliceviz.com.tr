@@ -388,3 +388,56 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (e.key === 'ArrowLeft') show(index - 1);
     });
 })();
+
+// ------------------------------------------------------------ Çerez onayı (alttan kayarak açılır)
+(function () {
+    'use strict';
+    const box = document.getElementById('cookieConsent');
+    if (!box) return;
+    const settings = document.getElementById('cookieSettings');
+    const btn = (name) => box.querySelector('[data-cookie="' + name + '"]');
+    const secure = location.protocol === 'https:' ? '; Secure' : '';
+
+    const open = (withSettings) => {
+        box.hidden = false;
+        if (withSettings) toggleSettings(true);
+        document.body.classList.add('cookie-open');
+        void box.offsetWidth; // başlangıç konumu çizilsin, sonra alttan kayarak gelsin
+        setTimeout(() => box.classList.add('is-open'), 20);
+    };
+    const close = () => {
+        box.classList.remove('is-open');
+        document.body.classList.remove('cookie-open');
+        setTimeout(() => { box.hidden = true; }, 600);
+    };
+    const toggleSettings = (show) => {
+        settings.hidden = !show;
+        btn('settings').hidden = show;
+        btn('necessary').hidden = show;
+        btn('save').hidden = !show;
+        btn('settings').setAttribute('aria-expanded', show ? 'true' : 'false');
+    };
+
+    // Seçim: s = istatistik, a = reklam (sunucu App\Support\Consent ile okur)
+    const save = (stats, ads) => {
+        const before = document.cookie.match(/(?:^|;\s*)cerez_tercihi=([^;]*)/);
+        const value = 's=' + (stats ? 1 : 0) + '&a=' + (ads ? 1 : 0);
+        document.cookie = 'cerez_tercihi=' + encodeURIComponent(value) + '; Max-Age=' + (180 * 86400) + '; Path=/; SameSite=Lax' + secure;
+        if (!stats) document.cookie = 'ziyaretci=; Max-Age=0; Path=/; SameSite=Lax' + secure; // anonim sayaç çerezi silinir
+        close();
+        // Reklam tercihi sayfa yüklenirken uygulanır: değiştiyse sayfa yenilenir
+        const oldAds = before ? /a=1/.test(decodeURIComponent(before[1])) : false;
+        if (oldAds !== ads) setTimeout(() => location.reload(), 650);
+    };
+
+    btn('all').addEventListener('click', () => save(true, true));
+    btn('necessary').addEventListener('click', () => save(false, false));
+    btn('settings').addEventListener('click', () => toggleSettings(true));
+    btn('save').addEventListener('click', () => save(settings.querySelector('[name="s"]').checked, settings.querySelector('[name="a"]').checked));
+
+    // Altbilgideki / politika sayfasındaki "Çerez Ayarları"
+    document.querySelectorAll('[data-cookie-open]').forEach((el) => el.addEventListener('click', () => open(true)));
+
+    // Henüz seçim yapılmadıysa sayfa açıldıktan kısa süre sonra alttan gelir
+    if (box.dataset.decided !== '1') setTimeout(() => open(false), 900);
+})();

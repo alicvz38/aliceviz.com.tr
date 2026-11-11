@@ -4,6 +4,15 @@ namespace App\Controllers\Site;
 
 class PageController extends SiteController
 {
+    /** Çerez politikası (altbilgi ve çerez penceresindeki bağlantı) */
+    public function cookies(): void
+    {
+        $this->render('cookie-policy', [
+            'pageTitle'       => 'Çerez Politikası',
+            'metaDescription' => 'Sitede kullanılan çerezler, ne işe yaradıkları ve tercihlerinizi nasıl değiştirebileceğiniz.',
+        ]);
+    }
+
     /** Bakım sayfası (bakimda.php tasarımı) */
     public function maintenance(): void
     {

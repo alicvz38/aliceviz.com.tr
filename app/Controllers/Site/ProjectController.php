@@ -63,6 +63,8 @@ class ProjectController extends SiteController
             $readme = (new GithubService(Setting::get('github_token') ?: null))->readmeHtml((string) $project->github_repo);
         }
 
+        \App\Support\Stats::project((int) $project->id);
+
         $related = $project->language
             ? Project::where('is_published = 1 AND language = ? AND id <> ?', [$project->language, $project->id], 'RAND()', 3)
             : [];
@@ -99,6 +101,7 @@ class ProjectController extends SiteController
             (new PageController($this->request))->notFound();
             return;
         }
+        \App\Support\Stats::project((int) $project->id);
         $this->render('project-showcase', [
             'pageTitle'       => $project->title . ' — Tanıtım',
             'metaDescription' => $project->title . ' ekran görüntüleriyle: ' . ((string) $project->summary ?: 'özellikler ve arayüz.'),

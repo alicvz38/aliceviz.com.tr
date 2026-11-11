@@ -66,6 +66,9 @@ if (!empty($schema)) {
 <?php if ($ads = adsense_client()): ?>
 <meta name="google-adsense-account" content="<?= e($ads) ?>">
 <?php if (http_response_code() < 400): /* bakım (503) ve 404 sayfalarında reklam gösterilmez */ ?>
+<?php if (!App\Support\Consent::ads()): /* reklam çerezine izin yok: kişiselleştirilmemiş reklam */ ?>
+<script>(window.adsbygoogle = window.adsbygoogle || []).requestNonPersonalizedAds = 1;</script>
+<?php endif; ?>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<?= e($ads) ?>" crossorigin="anonymous"></script>
 <?php endif; ?>
 <?php endif; ?>

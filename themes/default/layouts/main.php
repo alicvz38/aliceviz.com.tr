@@ -26,6 +26,7 @@
     <?= $this->partial('footer') ?>
     <?= $this->partial('toast') ?>
     <?= $this->partial('chat-widget') ?>
+    <?= $this->partial('cookie-consent') ?>
     <?= $this->partial('scripts') ?>
     <?= $this->section('scripts') ?>
 </body>

@@ -26,6 +26,7 @@ $router->group('', ['maintenance'], function ($r) {
     $r->get('projeler/{slug}/tanitim', [Site\ProjectController::class, 'showcase']);
 
     $r->get('hakkimda', [Site\AboutController::class, 'index']);
+    $r->get('cerez-politikasi', [Site\PageController::class, 'cookies']);
 
     $r->get('hizmetler', [Site\ServiceController::class, 'index']);
     $r->get('hizmetler/{slug}', [Site\ServiceController::class, 'show']);
@@ -62,6 +63,7 @@ $router->group($admin, ['auth'], function ($r) {
 
     $r->get('', [Admin\DashboardController::class, 'index']);
     $r->get('takvim', [Admin\CalendarController::class, 'index']);
+    $r->get('istatistikler', [Admin\StatsController::class, 'index']);
     $r->get('takvim/olaylar', [Admin\CalendarController::class, 'events']);
     $r->get('takvim/esitle', [Admin\CalendarController::class, 'sync']);
     $r->post('bakim-modu', [Admin\DashboardController::class, 'toggleMaintenance']);
