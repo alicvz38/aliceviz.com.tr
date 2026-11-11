@@ -5,9 +5,13 @@
  * @var App\Models\Message[] $mails
  */
 $this->layout('main');
+// WhatsApp yanıtı: numara + hazır selamlama (wa.me sohbeti bu metinle açılır)
+$waText = 'Merhaba ' . $quote->name . ', ' . preg_replace('#^https?://#', '', site_origin()) . ' üzerinden gönderdiğiniz ' . $quote->serviceLabel() . ' teklif talebiniz için yazıyorum.';
+$wa = whatsapp_href($quote->phone, $waText);
 ?>
 <?php $this->start('pageActions') ?>
 <div class="d-flex gap-2">
+    <?php if ($wa): ?><a href="<?= e($wa) ?>" target="_blank" rel="noopener" class="btn btn-success btn-sm"><?= icon('whatsapp', 16) ?> WhatsApp ile Yanıtla</a><?php endif; ?>
     <a href="<?= e(admin_url('mesajlar/yeni?teklif=' . $quote->id)) ?>" class="btn btn-primary btn-sm"><?= icon('send', 16) ?> E-posta ile Yanıtla</a>
     <a href="<?= e(admin_url('teklifler')) ?>" class="btn btn-outline-primary btn-sm"><?= icon('arrow-left', 16) ?> Listeye Dön</a>
 </div>
@@ -27,7 +31,7 @@ $this->layout('main');
                 <dt class="col-sm-3">E-posta</dt>
                 <dd class="col-sm-9"><a href="<?= e(admin_url('mesajlar/yeni?teklif=' . $quote->id)) ?>"><?= e($quote->email) ?></a></dd>
                 <dt class="col-sm-3">Telefon</dt>
-                <dd class="col-sm-9"><?= $quote->phone ? '<a href="' . e(phone_href($quote->phone)) . '">' . e($quote->phone) . '</a>' : '-' ?></dd>
+                <dd class="col-sm-9"><?= $wa ? '<a href="' . e($wa) . '" target="_blank" rel="noopener" title="WhatsApp ile yaz">' . icon('whatsapp', 14) . ' ' . e($quote->phone) . '</a>' : '-' ?></dd>
                 <dt class="col-sm-3">Hizmet / Paket</dt>
                 <dd class="col-sm-9"><?= e($quote->serviceLabel()) ?> · <?= e($quote->packageLabel()) ?></dd>
                 <dt class="col-sm-3">Bütçe</dt>

@@ -39,10 +39,12 @@ class ContactController extends SiteController
 
         $errors = [];
         $phone = phone_normalize((string) $r->post('phone', ''));
+        if ($phone === null) $errors['phone'] = 'Telefon numaranızı yazın; size WhatsApp üzerinden de dönüş yapacağım.';
         if ($phone === false) $errors['phone'] = 'Telefon numarasını 0 (5XX) XXX XX XX biçiminde eksiksiz yazın.';
+        elseif (is_string($phone) && !str_starts_with($phone, '0 (5')) $errors['phone'] = 'WhatsApp ile dönüş yapabilmem için cep telefonu numaranızı yazın (05XX ile başlayan).';
         $data['phone'] = $phone ?: null;
         if (mb_strlen($data['name']) < 2) $errors['name'] = 'Adınızı yazın.';
-        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) $errors['email'] = 'Geçerli bir e-posta adresi yazın; size bu adresten dönüş yapacağım.';
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) $errors['email'] = 'Geçerli bir e-posta adresi yazın; size bu adresten de dönüş yapacağım.';
         if (mb_strlen($data['subject']) < 3) $errors['subject'] = 'Bir konu yazın.';
         if (mb_strlen($data['body']) < 10) $errors['message'] = 'Mesajınız en az 10 karakter olmalı.';
         if (!$r->post('consent')) $errors['consent'] = 'Devam etmek için onay vermelisiniz.';
@@ -63,7 +65,7 @@ class ContactController extends SiteController
         $body = $data['body'] . ($data['phone'] ? "\n\nTelefon: " . $data['phone'] : '');
         Notifier::newMessage($data['name'], $data['email'], $data['subject'], $body, $this->absolute(admin_url('mesajlar/' . $id)));
 
-        $this->respond('Mesajınız gönderildi! En kısa sürede ' . $data['email'] . ' adresine dönüş yapacağım.', url('iletisim'));
+        $this->respond('Mesajınız gönderildi! En kısa sürede WhatsApp (' . $data['phone'] . ') ve e-posta (' . $data['email'] . ') üzerinden dönüş yapacağım.', url('iletisim'));
     }
 
     private function absolute(string $path): string

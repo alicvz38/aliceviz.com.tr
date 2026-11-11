@@ -58,6 +58,7 @@ $statuses = App\Models\QuoteRequest::STATUSES;
                                 <td>
                                     <div class="action-btns">
                                         <a href="<?= e(admin_url('teklifler/' . $q->id)) ?>" class="btn btn-outline-primary" title="Görüntüle"><?= icon('eye') ?></a>
+                                        <?php if ($q->phone): ?><a href="<?= e(whatsapp_href($q->phone, 'Merhaba ' . $q->name . ', ' . preg_replace('#^https?://#', '', site_origin()) . ' üzerinden gönderdiğiniz ' . $q->serviceLabel() . ' teklif talebiniz için yazıyorum.')) ?>" target="_blank" rel="noopener" class="btn btn-outline-success" title="WhatsApp ile yanıtla"><?= icon('whatsapp') ?></a><?php endif; ?>
                                         <a href="<?= e(admin_url('mesajlar/yeni?teklif=' . $q->id)) ?>" class="btn btn-outline-info" title="E-posta ile yanıtla"><?= icon('send') ?></a>
                                         <form method="post" action="<?= e(admin_url('teklifler/' . $q->id . '/sil')) ?>" data-ajax data-ajax-success="remove">
                                             <?= csrf_field() ?>

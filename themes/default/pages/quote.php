@@ -103,8 +103,8 @@ $form = App\Support\ServiceCatalog::form();
                         <input type="email" id="email" name="email" maxlength="150" required value="<?= e(old('email')) ?>" autocomplete="email">
                     </div>
                     <div class="field">
-                        <label for="phone">Telefon <small>(isteğe bağlı)</small></label>
-                        <input type="tel" id="phone" name="phone" data-mask="phone" value="<?= e(old('phone')) ?>" autocomplete="tel">
+                        <label for="phone">Telefon (WhatsApp) <em>*</em></label>
+                        <input type="tel" id="phone" name="phone" data-mask="phone" required value="<?= e(old('phone')) ?>" autocomplete="tel" placeholder="size WhatsApp'tan dönüş yapılır">
                     </div>
                     <div class="field">
                         <label for="company">Firma <small>(isteğe bağlı)</small></label>
@@ -113,7 +113,7 @@ $form = App\Support\ServiceCatalog::form();
                 </div>
                 <label class="consent">
                     <input type="checkbox" name="consent" value="1" required>
-                    <span>Bilgilerimin yalnızca bu talebe dönüş yapılması amacıyla kullanılmasını kabul ediyorum.</span>
+                    <span>Bilgilerimin yalnızca bu talebe WhatsApp ve e-posta üzerinden dönüş yapılması amacıyla kullanılmasını kabul ediyorum.</span>
                 </label>
             </fieldset>
 

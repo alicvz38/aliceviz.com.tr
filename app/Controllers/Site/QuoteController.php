@@ -50,7 +50,9 @@ class QuoteController extends SiteController
         }
         if (!$service) $errors['service'] = 'Bir hizmet seçin.';
         if ($service && $data['package'] && !isset($service['packages'][$data['package']])) $data['package'] = null;
+        if ($data['phone'] === null) $errors['phone'] = 'Telefon numaranızı yazın; size WhatsApp üzerinden de dönüş yapacağım.';
         if ($data['phone'] === false) $errors['phone'] = 'Telefon numarasını 0 (5XX) XXX XX XX biçiminde eksiksiz yazın.';
+        elseif (is_string($data['phone']) && !str_starts_with($data['phone'], '0 (5')) $errors['phone'] = 'WhatsApp ile dönüş yapabilmem için cep telefonu numaranızı yazın (05XX ile başlayan).';
         $data['phone'] = $data['phone'] ?: null;
         if (mb_strlen($data['name']) < 2) $errors['name'] = 'Adınızı yazın.';
         if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) $errors['email'] = 'Geçerli bir e-posta adresi yazın.';
@@ -86,6 +88,6 @@ class QuoteController extends SiteController
             $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . admin_url('teklifler/' . $id)
         );
 
-        $this->respond('Teklif talebiniz alındı! İnceleyip en kısa sürede ' . $data['email'] . ' adresine dönüş yapacağım.', url('teklif-al'), ['id' => $id]);
+        $this->respond('Teklif talebiniz alındı! İnceleyip en kısa sürede WhatsApp (' . $data['phone'] . ') ve e-posta (' . $data['email'] . ') üzerinden dönüş yapacağım.', url('teklif-al'), ['id' => $id]);
     }
 }

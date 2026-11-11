@@ -28,7 +28,7 @@ final class ServiceCatalog
             'deadlines' => self::defaultDeadlines(),
             'form'      => [
                 'title' => 'Projenizi anlatın, teklifiniz gelsin',
-                'lead'  => 'Formu doldurmanız 2 dakika sürer. Talebinizi inceleyip genellikle 24 saat içinde e-posta adresinize dönüş yaparım.',
+                'lead'  => 'Formu doldurmanız 2 dakika sürer. Talebinizi inceleyip genellikle 24 saat içinde WhatsApp ve e-posta üzerinden dönüş yaparım.',
                 'other' => true,
             ],
         ];

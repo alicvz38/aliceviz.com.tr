@@ -10,7 +10,7 @@ $this->layout('main');
     <div class="container">
         <span class="eyebrow">İletişim</span>
         <h1>Bana <span class="gradient-text">yazın</span></h1>
-        <p class="lead">Sorularınız, iş birliği teklifleriniz ya da sadece merhaba demek için. Mesajınız doğrudan bana ulaşır; yazdığınız e-posta adresine yanıt veririm.</p>
+        <p class="lead">Sorularınız, iş birliği teklifleriniz ya da sadece merhaba demek için. Mesajınız doğrudan bana ulaşır; size WhatsApp ve e-posta üzerinden dönüş yaparım.</p>
     </div>
 </section>
 
@@ -28,13 +28,13 @@ $this->layout('main');
                     </div>
                     <div class="field">
                         <label for="c_email">E-posta adresiniz <em>*</em></label>
-                        <input type="email" id="c_email" name="email" maxlength="150" required value="<?= e(old('email')) ?>" autocomplete="email" placeholder="size bu adresten dönüş yapılır">
+                        <input type="email" id="c_email" name="email" maxlength="150" required value="<?= e(old('email')) ?>" autocomplete="email" placeholder="size bu adresten de dönüş yapılır">
                     </div>
                 </div>
                 <div class="field-row two">
                     <div class="field">
-                        <label for="c_phone">Telefon <small>(isteğe bağlı)</small></label>
-                        <input type="tel" id="c_phone" name="phone" data-mask="phone" value="<?= e(old('phone')) ?>">
+                        <label for="c_phone">Telefon (WhatsApp) <em>*</em></label>
+                        <input type="tel" id="c_phone" name="phone" data-mask="phone" required value="<?= e(old('phone')) ?>" autocomplete="tel" placeholder="size WhatsApp'tan dönüş yapılır">
                     </div>
                     <div class="field">
                         <label for="c_subject">Konu <em>*</em></label>

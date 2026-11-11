@@ -13,6 +13,8 @@ $isInbox = !$message->isOutgoing();
 $isDraft = $message->folder === 'drafts';
 $folderLabel = App\Services\MailFetcher::folders()[$message->folder]['label'] ?? 'Mesajlar';
 $replySubject = (str_starts_with(mb_strtolower($message->subject), 're:') ? '' : 'Re: ') . $message->subject;
+// WhatsApp yanıtı: numara + hazır selamlama
+$wa = $message->phone ? whatsapp_href($message->phone, 'Merhaba ' . $message->name . ', ' . preg_replace('#^https?://#', '', site_origin()) . ' üzerinden gönderdiğiniz "' . $message->subject . '" konulu mesajınız için yazıyorum.') : '';
 $quoted = "\n\n\n" . $signature . "\n\n"
     . '--- ' . format_date($message->created_at, 'd.m.Y H:i') . ' tarihinde ' . ($message->name ?: $message->email) . " yazdı ---\n"
     . preg_replace('/^/m', '> ', (string) $message->body);
@@ -20,6 +22,9 @@ $quoted = "\n\n\n" . $signature . "\n\n"
 <?php $this->start('pageActions') ?>
 <div class="d-flex gap-2">
     <a href="<?= e(admin_url('mesajlar' . ($message->folder === 'inbox' ? '' : '?klasor=' . rawurlencode((string) $message->folder)))) ?>" class="btn btn-outline-primary btn-sm"><?= icon('arrow-left', 16) ?> <?= e($folderLabel) ?></a>
+    <?php if ($wa && $isInbox): ?>
+        <a href="<?= e($wa) ?>" target="_blank" rel="noopener" class="btn btn-success btn-sm"><?= icon('whatsapp', 16) ?> WhatsApp ile Yanıtla</a>
+    <?php endif; ?>
     <?php if ($isDraft): ?>
         <a href="<?= e(admin_url('mesajlar/yeni?taslak=' . $message->id)) ?>" class="btn btn-primary btn-sm"><?= icon('edit', 16) ?> Taslağı Düzenle ve Gönder</a>
     <?php endif; ?>
@@ -87,7 +92,7 @@ $quoted = "\n\n\n" . $signature . "\n\n"
                     <div class="text-white fw-bold"><?= e($message->name ?: '-') ?></div>
                     <a href="mailto:<?= e($message->email) ?>" class="small"><?= e($message->email) ?></a>
                     <?php if ($message->phone): ?>
-                        <div><a href="<?= e(phone_href($message->phone)) ?>" class="small"><?= icon('phone', 12) ?> <?= e($message->phone) ?></a></div>
+                        <div><a href="<?= e($wa) ?>" target="_blank" rel="noopener" class="small" title="WhatsApp ile yaz"><?= icon('whatsapp', 12) ?> <?= e($message->phone) ?></a></div>
                     <?php endif; ?>
                 </div>
             </div>

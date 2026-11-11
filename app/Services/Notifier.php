@@ -37,7 +37,7 @@ class Notifier
 
         if (Setting::get('mail_autoreply', '1') === '1') {
             $text = "Merhaba {$name},\n\n"
-                . "Mesajınız bana ulaştı, teşekkür ederim. En kısa sürede (genellikle 24 saat içinde) size dönüş yapacağım.\n\n"
+                . "Mesajınız bana ulaştı, teşekkür ederim. En kısa sürede (genellikle 24 saat içinde) size WhatsApp ve e-posta üzerinden dönüş yapacağım.\n\n"
                 . "Gönderdiğiniz mesaj:\n"
                 . "------------------------------\n"
                 . "Konu: {$subject}\n\n{$body}\n"
