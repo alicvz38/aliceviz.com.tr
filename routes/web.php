@@ -99,6 +99,7 @@ $router->group($admin, ['auth'], function ($r) {
     $r->get('teklifler/{id}', [Admin\QuoteController::class, 'show']);
     $r->post('teklifler/{id}/guncelle', [Admin\QuoteController::class, 'update']);
     $r->post('teklifler/{id}/sil', [Admin\QuoteController::class, 'destroy']);
+    $r->post('teklifler/{id}/telefon-onayi', [Admin\QuoteController::class, 'verifyPhone']);
 
     // Canlı destek
     $r->get('canli-destek', [Admin\LiveChatController::class, 'index']);
@@ -129,6 +130,7 @@ $router->group($admin, ['auth'], function ($r) {
     $r->post('mesajlar/{id}/yildiz', [Admin\MessageController::class, 'star']);
     $r->post('mesajlar/{id}/okundu', [Admin\MessageController::class, 'markRead']);
     $r->post('mesajlar/{id}/sil', [Admin\MessageController::class, 'destroy']);
+    $r->post('mesajlar/{id}/telefon-onayi', [Admin\MessageController::class, 'verifyPhone']);
 
     // Site Ayarları: her bölüm ayrı sayfa (genel, iletisim, sosyal, github, gorunum, bakim)
     $r->get('ayarlar', [Admin\SettingController::class, 'index']);

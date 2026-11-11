@@ -12,7 +12,7 @@ class QuoteRequest extends Model
 {
     protected static string $table = 'quote_requests';
     protected static array $fillable = [
-        'service', 'package', 'name', 'email', 'phone', 'company', 'budget',
+        'service', 'package', 'name', 'email', 'phone', 'phone_code', 'phone_verified_at', 'company', 'budget',
         'deadline', 'message', 'status', 'admin_note', 'ip',
     ];
 
@@ -59,6 +59,6 @@ class QuoteRequest extends Model
     public function packageLabel(): string
     {
         $service = ServiceCatalog::find((string) $this->service);
-        return $service['packages'][$this->package]['name'] ?? ((string) $this->package ?: '-');
+        return $service['packages'][(string) $this->package]['name'] ?? ((string) $this->package ?: '-');
     }
 }

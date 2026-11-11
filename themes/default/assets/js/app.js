@@ -301,6 +301,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ------------------------------------------------------------ Teklif formu
+    // Telefon onayı (ücretsiz, WhatsApp): teşekkür ekranında onay mesajı düğmesi
+    const showVerify = (id, data) => {
+        const box = document.getElementById(id);
+        if (!box) return;
+        const url = data && data.verify_url;
+        box.hidden = !url;
+        if (!url) return;
+        box.querySelector('a').href = url;
+        box.querySelector('[data-code]').textContent = data.verify_code || '';
+    };
+
     const quoteForm = document.getElementById('quoteForm');
     if (quoteForm) {
         const pkg = quoteForm.elements.package;
@@ -329,6 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
         quoteForm.addEventListener('ajax:success', (e) => {
             e.preventDefault();
             document.getElementById('quoteSuccessText').textContent = e.detail.message;
+            showVerify('quoteVerify', e.detail.data);
             quoteForm.hidden = true;
             const box = document.getElementById('quoteSuccess');
             box.hidden = false;
@@ -343,6 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
         contactForm.addEventListener('ajax:success', (e) => {
             e.preventDefault();
             document.getElementById('contactSuccessText').textContent = e.detail.message;
+            showVerify('contactVerify', e.detail.data);
             contactForm.hidden = true;
             box.hidden = false;
             box.scrollIntoView({ behavior: 'smooth', block: 'center' });

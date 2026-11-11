@@ -84,6 +84,9 @@ $quoted = "\n\n\n" . $signature . "\n\n"
     </div>
 
     <div class="col-xl-4 col-12 layout-spacing">
+        <?php if ($isInbox): ?>
+            <?= $this->partial('phone-verify', ['item' => $message, 'action' => admin_url('mesajlar/' . $message->id . '/telefon-onayi')]) ?>
+        <?php endif; ?>
         <div class="widget widget-content-area">
             <div class="section-title"><?= icon('user') ?> <?= $isInbox ? 'Gönderen' : 'Alıcı' ?></div>
             <div class="d-flex align-items-center gap-3 mb-3">

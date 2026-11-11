@@ -56,6 +56,12 @@ $this->layout('main');
                 <span class="success-icon"><?= icon('check-circle', 40) ?></span>
                 <h2>Mesajınız gönderildi!</h2>
                 <p id="contactSuccessText"></p>
+                <div class="verify-wa" id="contactVerify" hidden>
+                    <strong>Son adım: numaranızı onaylayın</strong>
+                    <span>Gerçek taleplere öncelik veriyorum. Aşağıdaki düğme WhatsApp'ı hazır bir onay mesajıyla açar; yalnızca <b>gönder</b>'e basmanız yeterli.</span>
+                    <a href="#" class="btn btn-wa" target="_blank" rel="noopener"><?= icon('whatsapp', 20) ?> <span>WhatsApp ile Onayla</span></a>
+                    <small>Onay kodunuz: <b data-code></b></small>
+                </div>
                 <button type="button" class="btn btn-ghost" id="contactAgain"><?= icon('edit', 18) ?> Yeni mesaj yaz</button>
             </div>
         </div>

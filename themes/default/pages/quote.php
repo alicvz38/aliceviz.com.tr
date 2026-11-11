@@ -124,6 +124,12 @@ $form = App\Support\ServiceCatalog::form();
             <span class="success-icon"><?= icon('check-circle', 40) ?></span>
             <h2>Talebiniz alındı!</h2>
             <p id="quoteSuccessText"></p>
+            <div class="verify-wa" id="quoteVerify" hidden>
+                <strong>Son adım: numaranızı onaylayın</strong>
+                <span>Gerçek taleplere öncelik veriyorum. Aşağıdaki düğme WhatsApp'ı hazır bir onay mesajıyla açar; yalnızca <b>gönder</b>'e basmanız yeterli.</span>
+                <a href="#" class="btn btn-wa" target="_blank" rel="noopener"><?= icon('whatsapp', 20) ?> <span>WhatsApp ile Onayla</span></a>
+                <small>Onay kodunuz: <b data-code></b></small>
+            </div>
             <div class="hero-actions">
                 <a href="<?= e(url('projeler')) ?>" class="btn btn-ghost"><?= icon('layers', 18) ?> Projelerime göz atın</a>
                 <a href="<?= e(url()) ?>" class="btn btn-primary"><?= icon('home', 18) ?> Ana sayfa</a>

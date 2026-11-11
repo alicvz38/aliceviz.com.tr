@@ -11,7 +11,7 @@ class Message extends Model
 {
     protected static string $table = 'messages';
     protected static array $fillable = [
-        'folder', 'name', 'email', 'phone', 'subject', 'body', 'is_read', 'is_starred', 'replied_at',
+        'folder', 'name', 'email', 'phone', 'phone_code', 'phone_verified_at', 'subject', 'body', 'is_read', 'is_starred', 'replied_at',
         'parent_id', 'quote_id', 'send_status', 'send_error', 'ip', 'message_id', 'imap_uid', 'source', 'created_at',
     ];
 

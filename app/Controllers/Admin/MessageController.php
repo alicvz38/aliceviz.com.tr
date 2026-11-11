@@ -350,6 +350,15 @@ class MessageController extends AdminController
         $this->respond($starred ? 'Yıldızlandı.' : 'Yıldız kaldırıldı.', admin_url('mesajlar'), ['starred' => (bool) $starred]);
     }
 
+    /** Telefon onayı: WhatsApp'tan onay kodu geldiyse "Doğrulandı" (tekrar basılırsa geri alınır) */
+    public function verifyPhone(string $id): void
+    {
+        $message = $this->findOrFail((int) $id);
+        $verify = empty($message->phone_verified_at);
+        Message::updateById((int) $message->id, ['phone_verified_at' => $verify ? date('Y-m-d H:i:s') : null]);
+        $this->respond($verify ? 'Telefon numarası doğrulandı.' : 'Telefon onayı geri alındı.', admin_url('mesajlar/' . $message->id), ['verified' => $verify]);
+    }
+
     public function markRead(string $id): void
     {
         $message = $this->findOrFail((int) $id);
