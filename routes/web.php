@@ -144,6 +144,8 @@ $router->group($admin, ['auth'], function ($r) {
 
     $r->get('hesabim', [Admin\AccountController::class, 'index']);
     $r->post('hesabim', [Admin\AccountController::class, 'update']);
+    $r->post('hesabim/fotograf', [Admin\AccountController::class, 'photo']);
+    $r->post('hesabim/fotograf/sil', [Admin\AccountController::class, 'removePhoto']);
     $r->post('hesabim/cihazlar/{id}/sil', [Admin\AccountController::class, 'forgetDevice']);
     $r->post('hesabim/cihazlar/digerleri', [Admin\AccountController::class, 'forgetOthers']);
 });

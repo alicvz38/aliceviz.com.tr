@@ -62,7 +62,7 @@ class ResumeController extends AdminController
 
         Setting::setMany($values);
         $this->respond('Profil bilgileri kaydedildi.', admin_url('ozgecmis'), [
-            'avatar' => $avatar !== '' ? url($avatar) : null,
+            'avatar' => profile_photo() ?: null,
         ]);
     }
 

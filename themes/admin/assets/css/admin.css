@@ -401,3 +401,7 @@ body.dark .calendar-widget .fc .fc-list-event-title, body.dark .calendar-widget 
 .shot-delete { flex-shrink: 0; }
 .gu-mirror.shot-row { list-style: none; }
 @media (max-width: 767px) { .shot-row { flex-wrap: wrap; } .shot-thumb img { width: 100%; height: auto; } }
+
+/* Profil fotoğrafı (Hesabım / Özgeçmiş): üst çubuk ve kullanıcı menüsü */
+.navbar-avatar-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dropdown-avatar-img { width: 44px; height: 44px; object-fit: cover; flex: none; }

@@ -4,7 +4,39 @@
  * @var App\Models\User $user
  */
 $this->layout('main');
+$photo = profile_photo();
 ?>
+<div class="row">
+    <div class="col-12 layout-spacing">
+        <div class="widget widget-content-area">
+            <div class="section-title"><?= icon('user') ?> Profil fotoğrafı</div>
+            <div class="row g-4 align-items-center">
+                <div class="col-auto">
+                    <?php if ($photo): ?>
+                        <img src="<?= e($photo) ?>" id="photoPreview" class="resume-avatar" alt="Profil fotoğrafı">
+                    <?php else: ?>
+                        <img src="" id="photoPreview" class="resume-avatar d-none" alt="Profil fotoğrafı">
+                        <span class="resume-avatar"><?= e($user->initials()) ?></span>
+                    <?php endif; ?>
+                </div>
+                <div class="col">
+                    <p class="text-muted small mb-2">Bu fotoğraf <b>panelin sağ üstünde</b>, sitenizde ve <b>Özgeçmiş</b> sayfasında kullanılır. Buradan ya da Özgeçmiş'ten değiştirdiğinizde her yerde birlikte değişir. JPG, PNG veya WEBP; kare fotoğraflar en iyi görünür.</p>
+                    <form method="post" action="<?= e(admin_url('hesabim/fotograf')) ?>" enctype="multipart/form-data" class="d-flex gap-2 flex-wrap align-items-center" data-ajax data-ajax-success="reload">
+                        <?= csrf_field() ?>
+                        <input type="file" class="form-control form-control-sm" name="photo" accept="image/jpeg,image/png,image/webp" data-preview="#photoPreview" style="max-width:320px" required>
+                        <button class="btn btn-primary btn-sm" type="submit"><?= icon('upload', 14) ?> Yükle</button>
+                        <?php if ($photo): ?>
+                            <button class="btn btn-outline-danger btn-sm" type="submit" form="photoRemove" data-confirm="Profil fotoğrafı kaldırılsın mı? Sitede ve panelde baş harfleriniz görünür."><?= icon('trash', 14) ?> Kaldır</button>
+                        <?php endif; ?>
+                    </form>
+                    <?php if ($photo): ?>
+                        <form method="post" action="<?= e(admin_url('hesabim/fotograf/sil')) ?>" id="photoRemove" data-ajax data-ajax-success="reload"><?= csrf_field() ?></form>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <form method="post" action="<?= e(admin_url('hesabim')) ?>" autocomplete="off">
     <?= csrf_field() ?>
     <div class="row">

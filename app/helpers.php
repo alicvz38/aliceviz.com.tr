@@ -300,3 +300,21 @@ function is_active(string $prefix, bool $exact = false): bool
     $prefix = trim($prefix, '/');
     return $exact ? $path === $prefix : ($path === $prefix || str_starts_with($path, $prefix . '/'));
 }
+
+/**
+ * Profil fotoğrafı (tek kaynak: Özgeçmiş / Hesabım'dan yüklenen "cv_avatar").
+ * Sitede, özgeçmişte ve panelde aynı fotoğraf görünür; değiştirince her yerde değişir.
+ * Adres dosyanın değişiklik zamanıyla sürümlenir (tarayıcı eskisini göstermez).
+ */
+function profile_photo(bool $absolute = false): string
+{
+    $path = (string) setting('cv_avatar', '');
+    if ($path === '' || preg_match('#^https?://#', $path)) {
+        return $path;
+    }
+    if (!is_file(ROOT_PATH . '/' . $path)) {
+        return '';
+    }
+    $url = url($path) . asset_version(ROOT_PATH . '/' . $path);
+    return $absolute ? site_origin() . $url : $url;
+}

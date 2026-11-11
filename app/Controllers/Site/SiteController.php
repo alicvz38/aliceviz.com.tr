@@ -21,7 +21,6 @@ abstract class SiteController extends Controller
 
     protected function boot(): void
     {
-        $avatar = (string) setting('cv_avatar', '');
         $this->view->share('site', [
             'title'       => setting('site_title', Config::get('app.name')),
             'domain'      => setting('site_domain', 'aliceviz.com.tr'),
@@ -37,7 +36,7 @@ abstract class SiteController extends Controller
                 ? whatsapp_href(setting('cv_phone', ''), setting('whatsapp_message', ''))
                 : '',
             'available'   => setting('cv_available', '1') === '1',
-            'avatar'      => $avatar !== '' ? (preg_match('#^https?://#', $avatar) ? $avatar : url($avatar)) : '',
+            'avatar'      => profile_photo(), // panel ve özgeçmişle aynı fotoğraf (değişince önbellek yenilenir)
             'social'      => [
                 'github'    => setting('github_username') ? 'https://github.com/' . setting('github_username') : '',
                 'instagram' => setting('social_instagram', ''),

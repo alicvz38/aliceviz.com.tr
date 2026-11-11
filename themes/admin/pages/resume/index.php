@@ -8,7 +8,7 @@
 $this->layout('main');
 $types = App\Models\ResumeItem::TYPES;
 $s = static fn (string $k) => $settings[$k] ?? '';
-$avatar = $s('cv_avatar') ? url($s('cv_avatar')) : '';
+$avatar = profile_photo(); // Hesabım'daki ve panel üst çubuğundaki fotoğrafla aynı
 ?>
 <?php $this->start('pageActions') ?>
 <a href="<?= e(url('hakkimda')) ?>" target="_blank" class="btn btn-outline-secondary btn-sm"><?= icon('eye', 16) ?> Sitede Gör</a>

@@ -19,6 +19,31 @@ class AccountController extends AdminController
         ]);
     }
 
+    /** Profil fotoğrafı (Özgeçmiş'teki fotoğrafla aynıdır: tek kaynak "cv_avatar") */
+    public function photo(): void
+    {
+        $file = $this->request->file('photo');
+        if (!$file) {
+            $this->respond('Bir fotoğraf seçin.', admin_url('hesabim'), [], 'danger');
+        }
+        $uploader = new \App\Services\Uploader();
+        try {
+            $new = $uploader->image($file);
+        } catch (\RuntimeException $e) {
+            $this->respond($e->getMessage(), admin_url('hesabim'), [], 'danger');
+        }
+        $uploader->delete((string) \App\Models\Setting::get('cv_avatar', ''));
+        \App\Models\Setting::set('cv_avatar', $new);
+        $this->respond('Profil fotoğrafı güncellendi; panelde, sitede ve özgeçmişte değişti.', admin_url('hesabim'), ['photo' => profile_photo()]);
+    }
+
+    public function removePhoto(): void
+    {
+        (new \App\Services\Uploader())->delete((string) \App\Models\Setting::get('cv_avatar', ''));
+        \App\Models\Setting::set('cv_avatar', '');
+        $this->respond('Profil fotoğrafı kaldırıldı.', admin_url('hesabim'));
+    }
+
     /** Hatırlanan tek bir cihazı kapat */
     public function forgetDevice(string $id): void
     {

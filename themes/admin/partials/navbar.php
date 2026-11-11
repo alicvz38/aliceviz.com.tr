@@ -59,7 +59,11 @@
                 <a href="javascript:void(0);" class="nav-link dropdown-toggle user" id="userProfileDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <div class="avatar-container">
                         <div class="avatar avatar-sm avatar-indicators avatar-online">
-                            <span class="avatar-title rounded-circle"><?= e($authUser?->initials() ?? 'A') ?></span>
+                            <?php if ($photo = profile_photo()): ?>
+                                <img src="<?= e($photo) ?>" alt="<?= e($authUser?->name) ?>" class="rounded-circle navbar-avatar-img">
+                            <?php else: ?>
+                                <span class="avatar-title rounded-circle"><?= e($authUser?->initials() ?? 'A') ?></span>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </a>
@@ -67,7 +71,11 @@
                 <div class="dropdown-menu position-absolute" aria-labelledby="userProfileDropdown">
                     <div class="user-profile-section">
                         <div class="media mx-auto">
-                            <div class="emoji me-2">&#x1F44B;</div>
+                            <?php if ($photo): ?>
+                                <img src="<?= e($photo) ?>" alt="" class="rounded-circle me-2 dropdown-avatar-img">
+                            <?php else: ?>
+                                <div class="emoji me-2">&#x1F44B;</div>
+                            <?php endif; ?>
                             <div class="media-body">
                                 <h5><?= e($authUser?->name) ?></h5>
                                 <p>@<?= e($authUser?->username) ?></p>
