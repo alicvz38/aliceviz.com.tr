@@ -15,7 +15,7 @@ $uid = 'att' . bin2hex(random_bytes(3));
      data-chunk="<?= (int) MailAttachments::chunkSize() ?>"
      data-max="<?= (int) MailAttachments::MAX_FILE ?>"
      data-max-files="<?= (int) MailAttachments::MAX_FILES ?>"
-     data-inline="<?= (int) MailAttachments::INLINE_TOTAL ?>">
+     data-inline="<?= MailAttachments::ALL_AS_CARDS ? 0 : (int) MailAttachments::INLINE_TOTAL ?>">
     <label class="mail-att-drop">
         <input type="file" multiple hidden>
         <?= icon('paperclip', 16) ?> <b>Dosya ekle</b> <span class="text-muted">ya da buraya sürükleyin · dosya başına en fazla <?= e(MailAttachments::human(MailAttachments::MAX_FILE)) ?></span>
@@ -61,10 +61,10 @@ $uid = 'att' . bin2hex(random_bytes(3));
             var inline = sum + it.size <= INLINE;
             if (inline) sum += it.size; else links++;
             it.el.querySelector('.tag').className = 'tag' + (inline ? '' : ' link');
-            it.el.querySelector('.tag').textContent = inline ? 'Ek' : 'İndirme bağlantısı';
+            it.el.querySelector('.tag').textContent = inline ? 'Ek' : 'E-postada kart';
         });
         note.hidden = !links;
-        note.textContent = links ? 'Büyük dosyalar e-postaya eklenmez; alıcıya 30 gün geçerli bir indirme bağlantısı gider (e-posta sunucuları ~25 MB üstü ekleri kabul etmez).' : '';
+        note.textContent = links ? 'Dosyalar e-postanın içinde kart olarak görünür; alıcı karta tıklayınca indirir (30 gün geçerli).' : '';
     }
 
     function add(files) {

@@ -273,9 +273,13 @@ class Mailer
         if ($path !== '' && is_file(ROOT_PATH . '/' . $path)) {
             $photo = $site . '/' . ltrim($path, '/') . asset_version(ROOT_PATH . '/' . $path);
         }
-        // Sitenin gece gökyüzü arka planı (e-postaya uygun, katmanları işlenmiş tek görsel; yüklenmezse koyu renk kalır)
-        $bgFile = ROOT_PATH . '/assets/img/eposta-arka-plan.jpg';
-        $bg = $site . '/assets/img/eposta-arka-plan.jpg' . (is_file($bgFile) ? asset_version($bgFile) : '');
+        // Arka plan: dışta döşenen yıldız deseni; ortadaki panelde sitenin arka plan resmi (eposta-kapak.jpg)
+        $asset = static function (string $file) use ($site): string {
+            $full = ROOT_PATH . '/assets/img/' . $file;
+            return is_file($full) ? $site . '/assets/img/' . $file . asset_version($full) : '';
+        };
+        $bg = $asset('eposta-arka-plan.jpg');
+        $cover = $asset('eposta-kapak.jpg');
         $font = "'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 
         $sign = '';
@@ -288,33 +292,39 @@ class Mailer
                 . '</td></tr></table>';
         }
 
+        // Cam kart: yarı saydam zemin + ince açık kenarlık (sitedeki .glass gibi); rgba desteklemeyende koyu zemin
+        $glass = 'background-color:#111827;background-color:rgba(15,23,42,.66);border:1px solid #2a3550;border:1px solid rgba(255,255,255,.14);border-radius:18px';
+        // Orta panel: sitenin resmi tam genişlikte, ortalı (panel sabit genişlikte ve ortada; resim her uygulamada ortada kalır)
+        $panel = 'max-width:660px;border-radius:22px;background-color:#0b0f19'
+            . ($cover !== '' ? ';background-image:url(' . $esc($cover) . ');background-size:cover;background-position:center center;background-repeat:no-repeat' : '');
+
         return '<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             . '<meta name="color-scheme" content="dark"><meta name="supported-color-schemes" content="dark">'
             . '<style>:root{color-scheme:dark}a{color:#22d3ee}</style></head>'
-            . '<body style="margin:0;padding:0;background-color:#0b0f19;background-image:url(' . $esc($bg) . ');background-repeat:repeat" bgcolor="#0b0f19">'
-            // Yıldız deseni döşenir (kenarları birbirine uyar): uygulama resmi nereden başlatırsa başlatsın kayma olmaz
-            . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0b0f19" background="' . $esc($bg) . '" style="background-color:#0b0f19;background-image:url(' . $esc($bg) . ');background-repeat:repeat;background-position:center top">'
-            // Sitedeki camgöbeği / mor ışıklar ayrı katman: destekleyen uygulamalarda görünür, desteklemeyende yıldızlar kalır
-            . '<tr><td align="center" style="padding:32px 14px;background-image:radial-gradient(ellipse 60% 420px at 12% 0%,rgba(56,189,248,.16),transparent 70%),radial-gradient(ellipse 60% 420px at 88% 0%,rgba(168,85,247,.16),transparent 70%)">'
-            . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:620px">'
+            . '<body style="margin:0;padding:0;background-color:#0b0f19' . ($bg !== '' ? ';background-image:url(' . $esc($bg) . ');background-repeat:repeat' : '') . '" bgcolor="#0b0f19">'
+            . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0b0f19"' . ($bg !== '' ? ' background="' . $esc($bg) . '"' : '') . ' style="background-color:#0b0f19' . ($bg !== '' ? ';background-image:url(' . $esc($bg) . ');background-repeat:repeat' : '') . '">'
+            . '<tr><td align="center" style="padding:28px 12px">'
+            // Orta panel (resimli)
+            . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0b0f19"' . ($cover !== '' ? ' background="' . $esc($cover) . '"' : '') . ' style="' . $panel . '">'
+            . '<tr><td style="padding:30px 26px 26px">'
             // Üst: logo + alan adı
-            . '<tr><td style="padding:0 6px 18px">'
-            . '<a href="' . $esc($site) . '" style="text-decoration:none"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>'
+            . '<a href="' . $esc($site) . '" style="text-decoration:none"><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px"><tr>'
             . '<td width="34" height="34" align="center" bgcolor="#1e293b" style="width:34px;height:34px;border-radius:10px;background:#1e293b;background-image:linear-gradient(135deg,#22d3ee,#a855f7);color:#ffffff;font:bold 14px/34px Consolas,monospace">&lt;&gt;</td>'
-            . '<td style="padding-left:10px;color:#f1f5f9;font:bold 17px ' . $font . '">' . $esc($domain) . '</td>'
-            . '</tr></table></a></td></tr>'
-            // Kart
-            . '<tr><td bgcolor="#111827" style="background:#111827;border:1px solid #1f2a44;border-radius:16px;overflow:hidden">'
-            . '<div style="height:4px;line-height:4px;font-size:0;background:#22d3ee;background-image:linear-gradient(90deg,#22d3ee,#6366f1,#a855f7)">&nbsp;</div>'
-            . '<div style="padding:30px 30px 28px;color:#e2e8f0;font-family:' . $font . ';font-size:15px;line-height:1.7">' . $content . '</div>'
-            . '</td></tr>'
-            // Alt: imza + bağlantılar
-            . '<tr><td align="center" style="padding:24px 10px 6px">' . $sign . '</td></tr>'
-            . '<tr><td align="center" style="padding:10px 10px 0;font-family:' . $font . ';font-size:12px;color:#64748b">'
-            . '<a href="' . $esc($site) . '" style="color:#94a3b8;text-decoration:none">' . $esc($domain) . '</a>'
-            . ' &nbsp;&middot;&nbsp; <a href="' . $esc($site . '/projeler') . '" style="color:#94a3b8;text-decoration:none">Projeler</a>'
-            . ' &nbsp;&middot;&nbsp; <a href="' . $esc($site . '/iletisim') . '" style="color:#94a3b8;text-decoration:none">İletişim</a>'
-            . '</td></tr>'
-            . '</table></td></tr></table></body></html>';
+            . '<td style="padding-left:10px;color:#f1f5f9;font:bold 17px ' . $font . ';text-shadow:0 1px 6px rgba(0,0,0,.6)">' . $esc($domain) . '</td>'
+            . '</tr></table></a>'
+            // Cam kart: metin + dosyalar
+            . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#111827" style="' . $glass . '"><tr><td style="padding:0">'
+            . '<div style="height:4px;line-height:4px;font-size:0;border-radius:18px 18px 0 0;background:#22d3ee;background-image:linear-gradient(90deg,#22d3ee,#6366f1,#a855f7)">&nbsp;</div>'
+            . '<div style="padding:28px 28px 26px;color:#e2e8f0;font-family:' . $font . ';font-size:15px;line-height:1.7">' . $content . '</div>'
+            . '</td></tr></table>'
+            // İmza + bağlantılar (panelin içinde, kartın altında)
+            . ($sign !== '' ? '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding:22px 0 4px">' . $sign . '</td></tr></table>' : '')
+            . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding:10px 0 0;font-family:' . $font . ';font-size:12px;color:#94a3b8;text-shadow:0 1px 4px rgba(0,0,0,.7)">'
+            . '<a href="' . $esc($site) . '" style="color:#cbd5e1;text-decoration:none">' . $esc($domain) . '</a>'
+            . ' &nbsp;&middot;&nbsp; <a href="' . $esc($site . '/projeler') . '" style="color:#cbd5e1;text-decoration:none">Projeler</a>'
+            . ' &nbsp;&middot;&nbsp; <a href="' . $esc($site . '/iletisim') . '" style="color:#cbd5e1;text-decoration:none">İletişim</a>'
+            . '</td></tr></table>'
+            . '</td></tr></table>'
+            . '</td></tr></table></body></html>';
     }
 }

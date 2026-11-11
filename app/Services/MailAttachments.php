@@ -19,6 +19,8 @@ final class MailAttachments
     public const MAX_FILES = 20;
     public const INLINE_TOTAL = 18 * 1024 * 1024; // ek olarak gönderilecek toplam (base64 ile ~24 MB olur)
     public const LINK_DAYS = 30;
+    /** true: küçük dosyalar da ek olarak değil, e-postanın içinde indirme kartı olarak gider */
+    public const ALL_AS_CARDS = true;
 
     public static function dir(string $sub = ''): string
     {
@@ -118,6 +120,10 @@ final class MailAttachments
      */
     public static function plan(array $rows): array
     {
+        // Tüm dosyalar e-postanın içinde kart olarak (tıklayınca iner); e-postanın altına ayrıca ek konmaz
+        if (self::ALL_AS_CARDS) {
+            return [[], array_values($rows)];
+        }
         $inline = $links = [];
         $sum = 0;
         foreach ($rows as $r) {
