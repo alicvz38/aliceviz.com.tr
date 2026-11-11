@@ -408,7 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const close = () => {
         box.classList.remove('is-open');
         document.body.classList.remove('cookie-open');
-        setTimeout(() => { box.hidden = true; }, 600);
+        setTimeout(() => { box.hidden = true; }, 1000); // kapanış animasyonu (1000 ms) bitince
     };
     const toggleSettings = (show) => {
         settings.hidden = !show;
@@ -427,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
         close();
         // Reklam tercihi sayfa yüklenirken uygulanır: değiştiyse sayfa yenilenir
         const oldAds = before ? /a=1/.test(decodeURIComponent(before[1])) : false;
-        if (oldAds !== ads) setTimeout(() => location.reload(), 650);
+        if (oldAds !== ads) setTimeout(() => location.reload(), 1050);
     };
 
     btn('all').addEventListener('click', () => save(true, true));

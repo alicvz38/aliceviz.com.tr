@@ -63,6 +63,7 @@ class DashboardController extends AdminController
             'mail_version' => (string) \App\Core\Database::getInstance()->fetchColumn("SELECT CONCAT(COUNT(*), '-', COALESCE(MAX(id), 0), '-', COALESCE(SUM(is_read), 0)) FROM messages"),
             'synced_ago'   => $last ? time_ago(date('Y-m-d H:i:s', $last)) : null,
             'progress'     => \App\Services\MailFetcher::progress(),
+            'stats_version' => \App\Support\Stats::version(),
         ]);
     }
 }

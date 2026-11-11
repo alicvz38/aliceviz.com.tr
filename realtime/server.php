@@ -244,6 +244,7 @@ function snapshot(): array
         'synced_ago'   => $last ? time_ago(date('Y-m-d H:i:s', $last)) : null,
         'progress'     => MailFetcher::progress(),
         'imap'         => $GLOBALS['imapState'] ?? 'off',
+        'stats_version' => App\Support\Stats::version(),
     ];
 }
 
@@ -269,7 +270,7 @@ function check_and_broadcast(): void
     $lastMailId = max($lastMailId, (int) $db->fetchColumn("SELECT COALESCE(MAX(id), 0) FROM messages"));
     $lastQuoteId = max($lastQuoteId, (int) $db->fetchColumn('SELECT COALESCE(MAX(id), 0) FROM quote_requests'));
 
-    $sig = [$snap['messages'], $snap['quotes'], $snap['chats'], $snap['mail_version'], $snap['progress']['imported'], $snap['progress']['done'], $snap['imap']];
+    $sig = [$snap['messages'], $snap['quotes'], $snap['chats'], $snap['mail_version'], $snap['progress']['imported'], $snap['progress']['done'], $snap['imap'], $snap['stats_version']];
     if ($sig !== $lastSnapshot) {
         broadcast($snap);
         $lastSnapshot = $sig;

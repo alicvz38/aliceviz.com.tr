@@ -64,6 +64,8 @@ $router->group($admin, ['auth'], function ($r) {
     $r->get('', [Admin\DashboardController::class, 'index']);
     $r->get('takvim', [Admin\CalendarController::class, 'index']);
     $r->get('istatistikler', [Admin\StatsController::class, 'index']);
+    $r->get('istatistikler/veri', [Admin\StatsController::class, 'data']);
+    $r->get('istatistikler/surum', [Admin\StatsController::class, 'version']);
     $r->get('takvim/olaylar', [Admin\CalendarController::class, 'events']);
     $r->get('takvim/esitle', [Admin\CalendarController::class, 'sync']);
     $r->post('bakim-modu', [Admin\DashboardController::class, 'toggleMaintenance']);

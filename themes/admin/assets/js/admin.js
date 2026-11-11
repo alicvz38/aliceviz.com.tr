@@ -305,6 +305,7 @@ document.addEventListener('DOMContentLoaded', function () {
             synced_ago: res.synced_ago,
             progress: res.progress,
             mail_version: res.mail_version,
+            stats_version: res.stats_version,
             live: live,
             changed: !!last && last.mail_version !== res.mail_version
         } }));

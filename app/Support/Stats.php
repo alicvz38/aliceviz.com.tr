@@ -152,11 +152,11 @@ final class Stats
     {
         return Database::getInstance()->fetchAll(
             "SELECT p.id, p.title, p.slug, p.kind, p.is_published, SUM(d.views) views,
-                    SUM(CASE WHEN d.day = CURDATE() THEN d.views ELSE 0 END) today
+                    SUM(CASE WHEN d.day = ? THEN d.views ELSE 0 END) today
              FROM stat_daily d JOIN projects p ON p.id = d.ref
              WHERE d.kind = 'project' AND d.day >= ?
              GROUP BY p.id, p.title, p.slug, p.kind, p.is_published ORDER BY views DESC, p.title LIMIT " . (int) $limit,
-            [date('Y-m-d', strtotime('-' . ($days - 1) . ' days'))]
+            [date('Y-m-d'), date('Y-m-d', strtotime('-' . ($days - 1) . ' days'))]
         );
     }
 
@@ -164,9 +164,9 @@ final class Stats
     public static function topPages(int $days, int $limit = 20): array
     {
         return Database::getInstance()->fetchAll(
-            "SELECT ref, SUM(views) views, SUM(CASE WHEN day = CURDATE() THEN views ELSE 0 END) today
+            "SELECT ref, SUM(views) views, SUM(CASE WHEN day = ? THEN views ELSE 0 END) today
              FROM stat_daily WHERE kind = 'page' AND day >= ? GROUP BY ref ORDER BY views DESC LIMIT " . (int) $limit,
-            [date('Y-m-d', strtotime('-' . ($days - 1) . ' days'))]
+            [date('Y-m-d'), date('Y-m-d', strtotime('-' . ($days - 1) . ' days'))]
         );
     }
 
@@ -188,6 +188,19 @@ final class Stats
             'projects'   => $sum('project', $from),
             'pages'      => $sum('page', $from),
         ];
+    }
+
+    /**
+     * Değişiklik sürümü: bugünkü sayımlardan biri artınca değişir (canlı yenileme için tek hafif sorgu).
+     * Gün dönünce de değişir; panel yeni günü kendiliğinden gösterir.
+     */
+    public static function version(): string
+    {
+        $day = date('Y-m-d');
+        return $day . '-' . (string) Database::getInstance()->fetchColumn(
+            "SELECT CONCAT(COUNT(*), '-', IFNULL(SUM(views), 0)) FROM stat_daily WHERE day = ?",
+            [$day]
+        );
     }
 
     /** Sayfa yolunu okunur ada çevirir */
