@@ -24,11 +24,11 @@
     <?php if ($files): ?>
         <div class="mail-files">
             <?php foreach ($files as $f): [$ext, $color] = App\Services\MailAttachments::badge((string) $f['name']); $alive = $f['path'] !== ''; ?>
-                <?= $alive ? '<a href="' . e(admin_url('mesajlar/ek/' . $f['token'] . '/indir')) . '" class="mail-file" title="İndir">' : '<span class="mail-file is-expired" title="Süresi doldu (30 gün)">' ?>
+                <?= $alive ? '<a href="' . e(admin_url('mesajlar/ek/' . $f['token'] . '/indir')) . '" class="mail-file" title="İndir">' : '<span class="mail-file is-expired" title="Artık indirilemez (silindi ya da 30 günü doldu)">' ?>
                     <span class="mail-file-ext" style="background:<?= e($color) ?>"><?= e($ext) ?></span>
                     <span class="mail-file-info">
                         <b><?= e($f['name']) ?></b>
-                        <small><?= e(App\Services\MailAttachments::human((int) $f['size'])) ?> · <?= $f['as_link'] ? 'İndirme bağlantısı' . ($f['downloads'] ? ' · ' . (int) $f['downloads'] . ' kez indirildi' : '') : 'E-postaya eklendi' ?><?= $alive ? '' : ' · süresi doldu' ?></small>
+                        <small><?= e(App\Services\MailAttachments::human((int) $f['size'])) ?> · <?= $f['as_link'] ? 'İndirme bağlantısı' . ($f['downloads'] ? ' · ' . (int) $f['downloads'] . ' kez indirildi' : '') : 'E-postaya eklendi' ?><?= $alive ? '' : ' · silindi' ?></small>
                     </span>
                     <?php if ($alive): ?><span class="mail-file-dl"><?= icon('download', 16) ?></span><?php endif; ?>
                 <?= $alive ? '</a>' : '</span>' ?>

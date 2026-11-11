@@ -18,7 +18,22 @@ final class MailAttachments
     public const MAX_FILE = 256 * 1024 * 1024;   // dosya başına en fazla 256 MB
     public const MAX_FILES = 20;
     public const INLINE_TOTAL = 18 * 1024 * 1024; // ek olarak gönderilecek toplam (base64 ile ~24 MB olur)
-    public const LINK_DAYS = 30;
+    public const LINK_DAYS = 30; // varsayılan saklama süresi
+    /** Seçilebilir saklama süreleri (gün => etiket); 0 = süresiz */
+    public const DAY_OPTIONS = [7 => '7 gün', 30 => '30 gün', 90 => '90 gün', 180 => '6 ay', 365 => '1 yıl', 0 => 'Süresiz'];
+
+    /** Panelden ayarlanan saklama süresi (gün); 0 = süresiz */
+    public static function days(): int
+    {
+        $d = (int) \App\Models\Setting::get('mail_file_days', (string) self::LINK_DAYS);
+        return array_key_exists($d, self::DAY_OPTIONS) ? $d : self::LINK_DAYS;
+    }
+
+    /** Yeni gönderimin son kullanma zamanı (süresizse null) */
+    public static function expiry(): ?string
+    {
+        return self::days() > 0 ? date('Y-m-d H:i:s', strtotime('+' . self::days() . ' days')) : null;
+    }
     /** true: küçük dosyalar da ek olarak değil, e-postanın içinde indirme kartı olarak gider */
     public const ALL_AS_CARDS = true;
 
@@ -151,7 +166,7 @@ final class MailAttachments
     public static function attach(array $inline, array $links, int $messageId): void
     {
         $db = Database::getInstance();
-        $expires = date('Y-m-d H:i:s', strtotime('+' . self::LINK_DAYS . ' days'));
+        $expires = self::expiry();
         foreach ($inline as $r) {
             $db->update('mail_attachments', ['message_id' => $messageId, 'as_link' => 0, 'expires_at' => $expires], 'id = :id', ['id' => $r['id']]);
         }
@@ -174,6 +189,53 @@ final class MailAttachments
     public static function forMessage(int $messageId): array
     {
         return Database::getInstance()->fetchAll('SELECT * FROM mail_attachments WHERE message_id = ? ORDER BY id', [$messageId]);
+    }
+
+    /** Panel: tüm dosyalar (gönderilenler + formda kalanlar), e-posta bilgisiyle */
+    public static function all(int $limit = 500): array
+    {
+        return Database::getInstance()->fetchAll(
+            'SELECT a.*, m.email, m.name AS recipient, m.subject
+             FROM mail_attachments a LEFT JOIN messages m ON m.id = a.message_id
+             ORDER BY a.id DESC LIMIT ' . (int) $limit
+        );
+    }
+
+    public static function stats(): array
+    {
+        $r = Database::getInstance()->fetch(
+            "SELECT COUNT(*) AS c, COALESCE(SUM(CASE WHEN path <> '' THEN size ELSE 0 END), 0) AS b,
+                    COALESCE(SUM(downloads), 0) AS d, COALESCE(SUM(path <> ''), 0) AS a FROM mail_attachments"
+        );
+        return ['count' => (int) $r['c'], 'bytes' => (int) $r['b'], 'downloads' => (int) $r['d'], 'active' => (int) $r['a']];
+    }
+
+    /**
+     * Dosyaları sunucudan siler (kayıt "silindi" olarak kalır; alıcıdaki bağlantı çalışmaz).
+     * @param int[]|null $ids null: tümü
+     * @return int Silinen dosya sayısı
+     */
+    public static function remove(?array $ids): int
+    {
+        $db = Database::getInstance();
+        if ($ids !== null) {
+            $ids = array_values(array_filter(array_map('intval', $ids)));
+            if (!$ids) {
+                return 0;
+            }
+            $rows = $db->fetchAll("SELECT * FROM mail_attachments WHERE path <> '' AND id IN (" . implode(',', array_fill(0, count($ids), '?')) . ')', $ids);
+        } else {
+            $rows = $db->fetchAll("SELECT * FROM mail_attachments WHERE path <> ''");
+        }
+        foreach ($rows as $r) {
+            @unlink(self::absPath($r));
+            if ($r['message_id'] === null) {
+                $db->delete('mail_attachments', 'id = ?', [$r['id']]); // gönderilmemiş: kayıt da gider
+            } else {
+                $db->update('mail_attachments', ['path' => '', 'expires_at' => date('Y-m-d H:i:s')], 'id = :id', ['id' => $r['id']]);
+            }
+        }
+        return count($rows);
     }
 
     /** İndirme bağlantısı (süresi dolmamış) */
@@ -278,9 +340,9 @@ final class MailAttachments
         if (!$links) {
             return '';
         }
-        $until = date('d.m.Y', strtotime('+' . self::LINK_DAYS . ' days'));
+        $until = self::expiry();
         $h = '<div style="margin-top:26px;padding-top:18px;border-top:1px solid rgba(255,255,255,.12)">'
-            . '<div style="font-size:13px;color:#94a3b8;margin-bottom:10px">&#128206; <b style="color:#e2e8f0">' . count($links) . ' dosya</b> &middot; ' . $until . ' tarihine kadar indirilebilir</div>';
+            . '<div style="font-size:13px;color:#94a3b8;margin-bottom:10px">&#128206; <b style="color:#e2e8f0">' . count($links) . ' dosya</b> &middot; ' . ($until ? date('d.m.Y', strtotime($until)) . ' tarihine kadar indirilebilir' : 'karta tıklayarak indirebilirsiniz') . '</div>';
         foreach ($links as $f) {
             [$ext, $color] = self::badge((string) $f['name']);
             $url = htmlspecialchars(self::url($f), ENT_QUOTES, 'UTF-8');

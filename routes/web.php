@@ -132,6 +132,9 @@ $router->group($admin, ['auth'], function ($r) {
     $r->post('mesajlar/gonder', [Admin\MessageController::class, 'send']);    $r->get('mesajlar/ayarlar', [Admin\MessageController::class, 'settings']);
     $r->post('mesajlar/ayarlar', [Admin\MessageController::class, 'saveSettings']);
     $r->post('mesajlar/ayarlar/test', [Admin\MessageController::class, 'testSettings']);
+    $r->get('mesajlar/dosyalar', [Admin\MessageController::class, 'files']);
+    $r->post('mesajlar/dosyalar/sil', [Admin\MessageController::class, 'deleteFiles']);
+    $r->post('mesajlar/dosyalar/sure', [Admin\MessageController::class, 'fileDays']);
     $r->post('mesajlar/ek', [Admin\MessageController::class, 'uploadChunk']);
     $r->post('mesajlar/ek/{token}/sil', [Admin\MessageController::class, 'discardAttachment']);
     $r->get('mesajlar/ek/{token}/indir', [Admin\MessageController::class, 'downloadAttachment']);

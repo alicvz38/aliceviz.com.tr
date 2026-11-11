@@ -50,6 +50,7 @@ abstract class AdminController extends Controller
             ['label' => 'Mesajlar', 'icon' => 'mail', 'path' => 'mesajlar', 'badge' => $unread, 'badge_id' => 'badge-messages', 'children' => [
                 ['label' => 'Gelen Kutusu', 'path' => 'mesajlar', 'exact' => true],
                 ['label' => 'Yeni E-posta', 'path' => 'mesajlar/yeni', 'exact' => true],
+                ['label' => 'Gönderilen Dosyalar', 'path' => 'mesajlar/dosyalar', 'exact' => true],
                 ['label' => 'E-posta Ayarları', 'path' => 'mesajlar/ayarlar', 'exact' => true],
             ]],
             ['label' => 'Teklif Talepleri', 'icon' => 'inbox', 'path' => 'teklifler', 'badge' => $newQuotes, 'badge_id' => 'badge-quotes', 'children' => [

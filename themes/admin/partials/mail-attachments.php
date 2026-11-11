@@ -64,7 +64,7 @@ $uid = 'att' . bin2hex(random_bytes(3));
             it.el.querySelector('.tag').textContent = inline ? 'Ek' : 'E-postada kart';
         });
         note.hidden = !links;
-        note.textContent = links ? 'Dosyalar e-postanın içinde kart olarak görünür; alıcı karta tıklayınca indirir (30 gün geçerli).' : '';
+        note.textContent = links ? 'Dosyalar e-postanın içinde kart olarak görünür; alıcı karta tıklayınca indirir<?= MailAttachments::days() ? ' (' . MailAttachments::days() . ' gün geçerli)' : '' ?>.' : '';
     }
 
     function add(files) {

@@ -148,7 +148,8 @@ class MessageController extends AdminController
         $mailBody = $body;
         if ($links) {
             // Düz metin sürümü (HTML göstermeyen e-posta uygulamaları için): bağlantı listesi
-            $mailBody .= "\n\n—\nDosyalar (indirme bağlantısı, " . \App\Services\MailAttachments::LINK_DAYS . " gün geçerli):\n";
+            $days = \App\Services\MailAttachments::days();
+            $mailBody .= "\n\n—\nDosyalar (indirme bağlantısı" . ($days ? ', ' . $days . ' gün geçerli' : '') . "):\n";
             foreach ($links as $f) {
                 $mailBody .= '• ' . $f['name'] . ' (' . \App\Services\MailAttachments::human((int) $f['size']) . '): ' . \App\Services\MailAttachments::url($f) . "\n";
             }
@@ -220,6 +221,43 @@ class MessageController extends AdminController
             $this->respond('Dosya bulunamadı ya da süresi doldu (dosyalar 30 gün saklanır).', admin_url('mesajlar'), [], 'danger');
         }
         \App\Services\MailAttachments::stream($row);
+    }
+
+    /** Gönderilen dosyalar: liste */
+    public function files(): void
+    {
+        \App\Services\MailAttachments::cleanup();
+        $this->render('messages/files', [
+            'pageTitle'   => 'Gönderilen Dosyalar',
+            'breadcrumbs' => ['Mesajlar' => admin_url('mesajlar'), 'Gönderilen Dosyalar' => null],
+            'files'       => \App\Services\MailAttachments::all(),
+            'stats'       => \App\Services\MailAttachments::stats(),
+        ]);
+    }
+
+    /** Dosya saklama süresi (yeni gönderimler için) */
+    public function fileDays(): void
+    {
+        $d = (int) $this->request->post('days', \App\Services\MailAttachments::LINK_DAYS);
+        if (!array_key_exists($d, \App\Services\MailAttachments::DAY_OPTIONS)) {
+            $d = \App\Services\MailAttachments::LINK_DAYS;
+        }
+        Setting::set('mail_file_days', (string) $d);
+        $this->respond('Dosya saklama süresi: ' . \App\Services\MailAttachments::DAY_OPTIONS[$d] . ' (yeni gönderimler için).', admin_url('mesajlar/dosyalar'));
+    }
+
+    /** Gönderilen dosyaları sil: tek (tek=id), seçili (ids[]), tümü (tumu=1) */
+    public function deleteFiles(): void
+    {
+        $r = $this->request;
+        if ($r->post('tumu')) {
+            $n = \App\Services\MailAttachments::remove(null);
+        } elseif ($r->post('tek')) {
+            $n = \App\Services\MailAttachments::remove([(int) $r->post('tek')]);
+        } else {
+            $n = \App\Services\MailAttachments::remove((array) $r->post('ids', []));
+        }
+        $this->respond($n ? $n . ' dosya sunucudan silindi.' : 'Silinecek dosya seçilmedi.', admin_url('mesajlar/dosyalar'), ['deleted' => $n], $n ? 'success' : 'info');
     }
 
     /** Gönderilmeden önce eki kaldır */
