@@ -80,19 +80,20 @@ class DashboardController extends AdminController
 
         \App\Services\LiveChat::touchAdmin();
         $imap = null;
+        $newMail = false;
         if (\App\Services\MailFetcher::isEnabled()) {
             try {
-                $imap = \App\Services\MailFetcher::openIdle();
+                // Önceki bekleme bittikten sonra (bağlantılar arası boşlukta) gelen e-posta varsa hemen alınır
+                $imap = \App\Services\MailFetcher::openIdle($newMail);
             } catch (\Throwable) {
                 $imap = null; // IMAP'e bağlanılamazsa yalnızca veritabanı izlenir
             }
         }
 
         $started = microtime(true);
-        $newMail = false;
         $nextDb = 0.0;
         try {
-            while (microtime(true) - $started < $limit) {
+            while (!$newMail && microtime(true) - $started < $limit) {
                 // 1) Gmail / posta sunucusu: yeni e-posta bildirimi (en fazla 1 sn bekler)
                 if ($imap) {
                     $read = [$imap->socket()];
@@ -118,6 +119,10 @@ class DashboardController extends AdminController
                         break;
                     }
                 }
+            }
+            if ($newMail && $imap) {
+                (new \App\Services\MailFetcher())->importNewInbox($imap, 15);
+                $newMail = false; // alındı
             }
         } catch (\Throwable) {
             // IMAP bağlantısı koptu: o ana kadarki durumla dön, panel yeniden bağlanır

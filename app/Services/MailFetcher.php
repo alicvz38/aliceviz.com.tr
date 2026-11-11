@@ -89,13 +89,55 @@ class MailFetcher
         }
     }
 
-    /** Gelen Kutusu'nu dinlemek için bağlantı açar (IMAP IDLE); çağıran kapatır */
-    public static function openIdle(): ImapClient
+    /**
+     * Gelen Kutusu'nu dinlemek için bağlantı açar (IMAP IDLE); çağıran kapatır.
+     * @param bool $missed Panelin bilmediği yeni e-posta zaten var mı? (bağlantılar arasındaki boşlukta gelenler)
+     */
+    public static function openIdle(?bool &$missed = null): ImapClient
     {
         $imap = (new self())->connect();
-        $imap->select('INBOX');
-        $imap->idleStart();
+        $box = $imap->select('INBOX');
+        $last = (int) Database::getInstance()->fetchColumn("SELECT last_uid FROM mail_folders WHERE folder_key = 'inbox'");
+        $missed = $last > 0 && $box['uidnext'] > 0 && $box['uidnext'] - 1 > $last;
+        if (!$missed) {
+            $imap->idleStart();
+        }
         return $imap;
+    }
+
+    /**
+     * Anlık bildirim sonrası en hızlı yol: AYNI bağlantıyla (yeniden giriş yok), yalnızca
+     * bilinen son e-postadan sonrakileri alır (binlerce e-postanın listesi istenmez).
+     * Silinen / bayrağı değişen e-postalar normal senkronizasyonda işlenir.
+     * @return int Eklenen e-posta sayısı
+     */
+    public function importNewInbox(ImapClient $imap, int $seconds = 15): int
+    {
+        $folder = Database::getInstance()->fetch("SELECT * FROM mail_folders WHERE folder_key = 'inbox' LIMIT 1");
+        if (!$folder || !(int) $folder['last_uid']) {
+            return $this->syncInbox($seconds);
+        }
+        if (!self::acquireLock()) {
+            return 0; // başka bir senkronizasyon çalışıyor; yeni e-postayı o alacak
+        }
+        $this->deadline = microtime(true) + $seconds;
+        try {
+            $imap->idleDone();
+            $last = (int) $folder['last_uid'];
+            // "UID n:*" en az bir sonuç döndürür (en büyük UID); yalnızca gerçekten yeni olanlar alınır
+            $new = array_values(array_filter($imap->search('UID ' . ($last + 1) . ':*'), static fn ($u) => $u > $last));
+            $added = 0;
+            foreach (array_chunk($new, self::BATCH) as $chunk) {
+                $added += $this->importBatch($imap, $folder, $chunk, strtolower((string) Setting::get('smtp_user', '')));
+                $last = max($chunk);
+            }
+            Database::getInstance()->query("UPDATE mail_folders SET last_uid = ?, synced_at = NOW() WHERE folder_key = 'inbox'", [$last]);
+            Setting::set('imap_last_sync', (string) time());
+            Setting::set('imap_last_error', '');
+            return $added;
+        } finally {
+            self::releaseLock();
+        }
     }
 
     /** Bu çalıştırmanın bitmesi gereken an (zaman bütçesi) */
