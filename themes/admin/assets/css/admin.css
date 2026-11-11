@@ -405,3 +405,15 @@ body.dark .calendar-widget .fc .fc-list-event-title, body.dark .calendar-widget 
 /* Profil fotoğrafı (Hesabım / Özgeçmiş): üst çubuk ve kullanıcı menüsü */
 .navbar-avatar-img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .dropdown-avatar-img { width: 44px; height: 44px; object-fit: cover; flex: none; }
+
+/* E-posta dosyaları (gönderilen e-postanın altında) */
+.mail-files { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; margin-top: 12px; }
+.mail-file { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid #1b2e4b; border-radius: 10px; background: #0e1726; color: #e0e6ed; text-decoration: none; transition: border-color .15s, background .15s; min-width: 0; }
+a.mail-file:hover { border-color: #4361ee; background: #142036; color: #fff; }
+.mail-file.is-expired { opacity: .55; }
+.mail-file-ext { flex: none; width: 40px; height: 40px; border-radius: 8px; display: grid; place-items: center; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .3px; }
+.mail-file-info { min-width: 0; display: flex; flex-direction: column; }
+.mail-file-info b { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mail-file-info small { color: #888ea8; font-size: 11.5px; }
+.mail-file-dl { margin-left: auto; color: #888ea8; flex: none; }
+a.mail-file:hover .mail-file-dl { color: #4361ee; }

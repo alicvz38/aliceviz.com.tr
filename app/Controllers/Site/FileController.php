@@ -27,21 +27,6 @@ class FileController extends SiteController
 
         Database::getInstance()->query('UPDATE mail_attachments SET downloads = downloads + 1 WHERE id = ?', [$row['id']]);
 
-        $path = MailAttachments::absPath($row);
-        $name = (string) $row['name'];
-        $ascii = preg_replace('/[^\x20-\x7E]/', '_', str_replace('"', '', $name));
-        @set_time_limit(0);
-        while (ob_get_level() > 0) {
-            ob_end_clean();
-        }
-        // Tarayıcı dosyayı açmaya çalışmasın, indirsin (güvenlik: içerik sitenin adresinde çalıştırılmaz)
-        header('Content-Type: application/octet-stream');
-        header('Content-Disposition: attachment; filename="' . $ascii . '"; filename*=UTF-8\'\'' . rawurlencode($name));
-        header('Content-Length: ' . filesize($path));
-        header('X-Content-Type-Options: nosniff');
-        header('X-Robots-Tag: noindex');
-        header('Cache-Control: private, no-store');
-        readfile($path);
-        exit;
+        MailAttachments::stream($row); // tarayıcı açmaya çalışmaz, indirir
     }
 }

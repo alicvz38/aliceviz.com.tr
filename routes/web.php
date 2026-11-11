@@ -134,6 +134,7 @@ $router->group($admin, ['auth'], function ($r) {
     $r->post('mesajlar/ayarlar/test', [Admin\MessageController::class, 'testSettings']);
     $r->post('mesajlar/ek', [Admin\MessageController::class, 'uploadChunk']);
     $r->post('mesajlar/ek/{token}/sil', [Admin\MessageController::class, 'discardAttachment']);
+    $r->get('mesajlar/ek/{token}/indir', [Admin\MessageController::class, 'downloadAttachment']);
     $r->get('mesajlar/{id}', [Admin\MessageController::class, 'show']);
     $r->post('mesajlar/{id}/yildiz', [Admin\MessageController::class, 'star']);
     $r->post('mesajlar/{id}/okundu', [Admin\MessageController::class, 'markRead']);

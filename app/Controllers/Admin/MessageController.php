@@ -147,27 +147,20 @@ class MessageController extends AdminController
         [$inline, $links] = \App\Services\MailAttachments::plan($files);
         $mailBody = $body;
         if ($links) {
-            $mailBody .= "
-
-—
-Dosyalar (indirme bağlantısı, " . \App\Services\MailAttachments::LINK_DAYS . " gün geçerli):
-";
+            // Düz metin sürümü (HTML göstermeyen e-posta uygulamaları için): bağlantı listesi
+            $mailBody .= "\n\n—\nDosyalar (indirme bağlantısı, " . \App\Services\MailAttachments::LINK_DAYS . " gün geçerli):\n";
             foreach ($links as $f) {
-                $mailBody .= '• ' . $f['name'] . ' (' . \App\Services\MailAttachments::human((int) $f['size']) . '): ' . \App\Services\MailAttachments::url($f) . "
-";
+                $mailBody .= '• ' . $f['name'] . ' (' . \App\Services\MailAttachments::human((int) $f['size']) . '): ' . \App\Services\MailAttachments::url($f) . "\n";
             }
         }
-        if ($files) {
-            // Paneldeki kopyada hangi dosyaların gittiği görünür
-            $record['body'] = $mailBody . ($inline ? "
-
-[Ekler: " . implode(', ', array_map(static fn ($f) => $f['name'] . ' (' . \App\Services\MailAttachments::human((int) $f['size']) . ')', $inline)) . ']' : '');
-        }
+        // HTML sürümünde büyük dosyalar kart olarak görünür (tıklayınca iner); panelde dosyalar balonun altında listelenir
+        $mailHtml = Mailer::textToHtml($body, \App\Services\MailAttachments::emailCards($links));
 
         try {
             $messageId = (new Mailer())->send($to, $subject, $mailBody, [
                 'name'        => $name,
                 'in_reply_to' => $parentMsg?->message_id ?: null,
+                'html'        => $mailHtml,
                 'attachments' => array_map(static fn ($f) => [
                     'path' => \App\Services\MailAttachments::absPath($f), 'name' => $f['name'], 'mime' => $f['mime'],
                 ], $inline),
@@ -217,6 +210,16 @@ Dosyalar (indirme bağlantısı, " . \App\Services\MailAttachments::LINK_DAYS . 
             Response::error($e->getMessage());
         }
         $this->json(['ok' => true, 'done' => $done !== null, 'file' => $done]);
+    }
+
+    /** Panelden ek indirme (gönderilmiş e-postanın dosyaları, 30 gün) */
+    public function downloadAttachment(string $token): void
+    {
+        $row = \App\Services\MailAttachments::findAny($token);
+        if (!$row) {
+            $this->respond('Dosya bulunamadı ya da süresi doldu (dosyalar 30 gün saklanır).', admin_url('mesajlar'), [], 'danger');
+        }
+        \App\Services\MailAttachments::stream($row);
     }
 
     /** Gönderilmeden önce eki kaldır */

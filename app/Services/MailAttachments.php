@@ -141,15 +141,14 @@ final class MailAttachments
         return site_origin() . url('dosya/' . $row['token']);
     }
 
-    /** Gönderildikten sonra: e-postaya bağla; ek olarak gidenlerin dosyası silinir (kopyası e-postada), bağlantılar 30 gün durur */
+    /** Gönderildikten sonra: e-postaya bağla. Hepsi 30 gün saklanır (bağlantılar alıcı için, ekler panelden indirmek için) */
     public static function attach(array $inline, array $links, int $messageId): void
     {
         $db = Database::getInstance();
-        foreach ($inline as $r) {
-            @unlink(self::absPath($r));
-            $db->update('mail_attachments', ['message_id' => $messageId, 'as_link' => 0, 'path' => ''], 'id = :id', ['id' => $r['id']]);
-        }
         $expires = date('Y-m-d H:i:s', strtotime('+' . self::LINK_DAYS . ' days'));
+        foreach ($inline as $r) {
+            $db->update('mail_attachments', ['message_id' => $messageId, 'as_link' => 0, 'expires_at' => $expires], 'id = :id', ['id' => $r['id']]);
+        }
         foreach ($links as $r) {
             $db->update('mail_attachments', ['message_id' => $messageId, 'as_link' => 1, 'expires_at' => $expires], 'id = :id', ['id' => $r['id']]);
         }
@@ -189,7 +188,7 @@ final class MailAttachments
     {
         $db = Database::getInstance();
         $old = $db->fetchAll(
-            "SELECT * FROM mail_attachments WHERE (as_link = 1 AND expires_at < NOW() AND path <> '')
+            "SELECT * FROM mail_attachments WHERE (expires_at < NOW() AND path <> '')
                 OR (message_id IS NULL AND created_at < NOW() - INTERVAL 1 DAY) LIMIT 200"
         );
         foreach ($old as $r) {
@@ -207,6 +206,95 @@ final class MailAttachments
                 @unlink($p);
             }
         }
+    }
+
+    /** Panelde indirme (yönetici; ek ya da bağlantı fark etmez, süresi dolmamışsa) */
+    public static function findAny(string $token): ?array
+    {
+        if (!preg_match('/^[a-f0-9]{32}$/', $token)) {
+            return null;
+        }
+        $row = Database::getInstance()->fetch('SELECT * FROM mail_attachments WHERE token = ?', [$token]);
+        return $row && $row['path'] !== '' && is_file(self::absPath($row)) ? $row : null;
+    }
+
+    /** Dosyayı indirme olarak gönderir (tarayıcı açmaya çalışmaz; içerik sitenin adresinde çalıştırılmaz) */
+    public static function stream(array $row): never
+    {
+        $path = self::absPath($row);
+        $name = (string) $row['name'];
+        $ascii = preg_replace('/[^\x20-\x7E]/', '_', str_replace('"', '', $name));
+        @set_time_limit(0);
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename="' . $ascii . '"; filename*=UTF-8\'\'' . rawurlencode($name));
+        header('Content-Length: ' . filesize($path));
+        header('X-Content-Type-Options: nosniff');
+        header('X-Robots-Tag: noindex');
+        header('Cache-Control: private, no-store');
+        readfile($path);
+        exit;
+    }
+
+    /** Dosya türü rozeti: uzantı ve renk (PDF kırmızı, ZIP sarı, Word mavi ...) */
+    public static function badge(string $name): array
+    {
+        $ext = strtolower((string) pathinfo($name, PATHINFO_EXTENSION));
+        $groups = [
+            '#e5484d' => ['pdf'],
+            '#f5a524' => ['zip', 'rar', '7z', 'tar', 'gz'],
+            '#2f6fed' => ['doc', 'docx', 'odt', 'rtf', 'txt'],
+            '#1f9d55' => ['xls', 'xlsx', 'csv', 'ods'],
+            '#f76b15' => ['ppt', 'pptx', 'odp', 'key'],
+            '#8e4ec6' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'psd', 'ai'],
+            '#d6409f' => ['mp4', 'mov', 'avi', 'mkv', 'webm'],
+            '#12a594' => ['mp3', 'wav', 'ogg', 'm4a'],
+            '#6e56cf' => ['exe', 'msi', 'apk', 'dmg', 'iso'],
+        ];
+        $color = '#64748b';
+        foreach ($groups as $c => $list) {
+            if (in_array($ext, $list, true)) {
+                $color = $c;
+                break;
+            }
+        }
+        return [$ext !== '' ? strtoupper(mb_substr($ext, 0, 4)) : 'DOSYA', $color];
+    }
+
+    /**
+     * E-postanın içinde görünen dosya kartları (Gmail'deki Drive dosyaları gibi): tür rozeti, ad, boyut, "İndir".
+     * Tablo + satır içi stil: e-posta uygulamalarının hepsinde aynı görünür. Karta tıklayınca indirme başlar.
+     */
+    public static function emailCards(array $links): string
+    {
+        if (!$links) {
+            return '';
+        }
+        $until = date('d.m.Y', strtotime('+' . self::LINK_DAYS . ' days'));
+        $h = '<div style="margin-top:26px;padding-top:18px;border-top:1px solid #1f2a44">'
+            . '<div style="font-size:13px;color:#94a3b8;margin-bottom:10px">&#128206; <b style="color:#e2e8f0">' . count($links) . ' dosya</b> &middot; ' . $until . ' tarihine kadar indirilebilir</div>';
+        foreach ($links as $f) {
+            [$ext, $color] = self::badge((string) $f['name']);
+            $url = htmlspecialchars(self::url($f), ENT_QUOTES, 'UTF-8');
+            $name = htmlspecialchars((string) $f['name'], ENT_QUOTES, 'UTF-8');
+            $h .= '<a href="' . $url . '" style="display:block;text-decoration:none;color:inherit;margin-bottom:8px">'
+                . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #1f2a44;border-radius:12px;background:#0f172a;border-collapse:separate" bgcolor="#0f172a">'
+                . '<tr>'
+                . '<td width="64" style="padding:12px 0 12px 12px;vertical-align:middle">'
+                . '<div style="width:46px;height:46px;border-radius:8px;background:' . $color . ';color:#ffffff;font:bold 12px/46px Arial,Helvetica,sans-serif;text-align:center;letter-spacing:.5px">' . htmlspecialchars($ext, ENT_QUOTES, 'UTF-8') . '</div>'
+                . '</td>'
+                . '<td style="padding:12px;vertical-align:middle;font-family:Arial,Helvetica,sans-serif">'
+                . '<div style="font-size:14px;font-weight:bold;color:#f1f5f9;word-break:break-all">' . $name . '</div>'
+                . '<div style="font-size:12px;color:#94a3b8;margin-top:3px">' . self::human((int) $f['size']) . '</div>'
+                . '</td>'
+                . '<td width="90" align="right" style="padding:12px 14px 12px 0;vertical-align:middle">'
+                . '<span style="display:inline-block;padding:8px 14px;border-radius:8px;background:#6366f1;background-image:linear-gradient(135deg,#22d3ee,#a855f7);color:#ffffff;font:bold 13px Arial,Helvetica,sans-serif;white-space:nowrap">&#11015; İndir</span>'
+                . '</td>'
+                . '</tr></table></a>';
+        }
+        return $h . '</div>';
     }
 
     public static function human(int $bytes): string

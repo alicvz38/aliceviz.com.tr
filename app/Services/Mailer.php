@@ -249,12 +249,70 @@ class Mailer
     }
 
     /** Düz metni sade, okunaklı bir HTML e-postaya çevirir */
-    public static function textToHtml(string $text): string
+    /** @param string $extraHtml Metnin altına eklenecek HTML (ör. dosya kartları) */
+    public static function textToHtml(string $text, string $extraHtml = ''): string
     {
         $body = nl2br(htmlspecialchars($text, ENT_QUOTES, 'UTF-8'));
-        $body = preg_replace('#(https?://[^\s<]+)#', '<a href="$1">$1</a>', $body);
-        return '<!DOCTYPE html><html><body style="margin:0;padding:24px;background:#f4f6fb;font-family:Arial,Helvetica,sans-serif">'
-            . '<div style="max-width:620px;margin:0 auto;background:#fff;border-radius:10px;padding:28px;color:#1f2937;font-size:15px;line-height:1.6">'
-            . $body . '</div></body></html>';
+        $body = preg_replace('#(https?://[^\s<]+)#', '<a href="$1" style="color:#22d3ee;text-decoration:none">$1</a>', $body);
+        return self::layout($body . $extraHtml);
+    }
+
+    /**
+     * Sitenin tasarımıyla e-posta iskeleti: koyu arka plan, camsı kart, camgöbeği → mor şerit,
+     * üstte logo + alan adı, altta profil fotoğrafı ve imza. Tablo + satır içi stil (tüm e-posta uygulamaları).
+     */
+    public static function layout(string $content): string
+    {
+        $esc = static fn ($v) => htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
+        $domain = (string) \App\Models\Setting::get('site_domain', '') ?: preg_replace('#^https?://#', '', site_origin());
+        $site = 'https://' . preg_replace('#^www\.#', '', $domain);
+        $name = (string) \App\Models\Setting::get('site_title', '');
+        $job = (string) \App\Models\Setting::get('cv_title', '');
+        $photo = '';
+        $path = (string) \App\Models\Setting::get('cv_avatar', '');
+        if ($path !== '' && is_file(ROOT_PATH . '/' . $path)) {
+            $photo = $site . '/' . ltrim($path, '/') . asset_version(ROOT_PATH . '/' . $path);
+        }
+        // Sitenin gece gökyüzü arka planı (e-postaya uygun, katmanları işlenmiş tek görsel; yüklenmezse koyu renk kalır)
+        $bgFile = ROOT_PATH . '/assets/img/eposta-arka-plan.jpg';
+        $bg = $site . '/assets/img/eposta-arka-plan.jpg' . (is_file($bgFile) ? asset_version($bgFile) : '');
+        $font = "'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+
+        $sign = '';
+        if ($name !== '') {
+            $sign = '<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto"><tr>'
+                . ($photo !== '' ? '<td style="padding-right:12px;vertical-align:middle"><img src="' . $esc($photo) . '" width="44" height="44" alt="" style="display:block;width:44px;height:44px;border-radius:50%;border:2px solid #1f2a44;object-fit:cover"></td>' : '')
+                . '<td style="vertical-align:middle;text-align:left;font-family:' . $font . '">'
+                . '<div style="color:#e2e8f0;font-size:14px;font-weight:bold">' . $esc($name) . '</div>'
+                . ($job !== '' ? '<div style="color:#94a3b8;font-size:12px;margin-top:2px">' . $esc($job) . '</div>' : '')
+                . '</td></tr></table>';
+        }
+
+        return '<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+            . '<meta name="color-scheme" content="dark"><meta name="supported-color-schemes" content="dark">'
+            . '<style>:root{color-scheme:dark}a{color:#22d3ee}</style></head>'
+            . '<body style="margin:0;padding:0;background:#0b0f19" bgcolor="#0b0f19">'
+            . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0b0f19" background="' . $esc($bg) . '" style="background-color:#0b0f19;background-image:url(' . $esc($bg) . ');background-size:cover;background-position:center top;background-repeat:no-repeat">'
+            . '<tr><td align="center" style="padding:32px 14px">'
+            . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:620px">'
+            // Üst: logo + alan adı
+            . '<tr><td style="padding:0 6px 18px">'
+            . '<a href="' . $esc($site) . '" style="text-decoration:none"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>'
+            . '<td width="34" height="34" align="center" bgcolor="#1e293b" style="width:34px;height:34px;border-radius:10px;background:#1e293b;background-image:linear-gradient(135deg,#22d3ee,#a855f7);color:#ffffff;font:bold 14px/34px Consolas,monospace">&lt;&gt;</td>'
+            . '<td style="padding-left:10px;color:#f1f5f9;font:bold 17px ' . $font . '">' . $esc($domain) . '</td>'
+            . '</tr></table></a></td></tr>'
+            // Kart
+            . '<tr><td bgcolor="#111827" style="background:#111827;border:1px solid #1f2a44;border-radius:16px;overflow:hidden">'
+            . '<div style="height:4px;line-height:4px;font-size:0;background:#22d3ee;background-image:linear-gradient(90deg,#22d3ee,#6366f1,#a855f7)">&nbsp;</div>'
+            . '<div style="padding:30px 30px 28px;color:#e2e8f0;font-family:' . $font . ';font-size:15px;line-height:1.7">' . $content . '</div>'
+            . '</td></tr>'
+            // Alt: imza + bağlantılar
+            . '<tr><td align="center" style="padding:24px 10px 6px">' . $sign . '</td></tr>'
+            . '<tr><td align="center" style="padding:10px 10px 0;font-family:' . $font . ';font-size:12px;color:#64748b">'
+            . '<a href="' . $esc($site) . '" style="color:#94a3b8;text-decoration:none">' . $esc($domain) . '</a>'
+            . ' &nbsp;&middot;&nbsp; <a href="' . $esc($site . '/projeler') . '" style="color:#94a3b8;text-decoration:none">Projeler</a>'
+            . ' &nbsp;&middot;&nbsp; <a href="' . $esc($site . '/iletisim') . '" style="color:#94a3b8;text-decoration:none">İletişim</a>'
+            . '</td></tr>'
+            . '</table></td></tr></table></body></html>';
     }
 }
