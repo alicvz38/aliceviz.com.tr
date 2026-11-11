@@ -291,9 +291,11 @@ class Mailer
         return '<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             . '<meta name="color-scheme" content="dark"><meta name="supported-color-schemes" content="dark">'
             . '<style>:root{color-scheme:dark}a{color:#22d3ee}</style></head>'
-            . '<body style="margin:0;padding:0;background:#0b0f19" bgcolor="#0b0f19">'
-            . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0b0f19" background="' . $esc($bg) . '" style="background-color:#0b0f19;background-image:url(' . $esc($bg) . ');background-size:cover;background-position:center top;background-repeat:no-repeat">'
-            . '<tr><td align="center" style="padding:32px 14px">'
+            . '<body style="margin:0;padding:0;background-color:#0b0f19;background-image:url(' . $esc($bg) . ');background-repeat:repeat" bgcolor="#0b0f19">'
+            // Yıldız deseni döşenir (kenarları birbirine uyar): uygulama resmi nereden başlatırsa başlatsın kayma olmaz
+            . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0b0f19" background="' . $esc($bg) . '" style="background-color:#0b0f19;background-image:url(' . $esc($bg) . ');background-repeat:repeat;background-position:center top">'
+            // Sitedeki camgöbeği / mor ışıklar ayrı katman: destekleyen uygulamalarda görünür, desteklemeyende yıldızlar kalır
+            . '<tr><td align="center" style="padding:32px 14px;background-image:radial-gradient(ellipse 60% 420px at 12% 0%,rgba(56,189,248,.16),transparent 70%),radial-gradient(ellipse 60% 420px at 88% 0%,rgba(168,85,247,.16),transparent 70%)">'
             . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:620px">'
             // Üst: logo + alan adı
             . '<tr><td style="padding:0 6px 18px">'
