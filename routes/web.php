@@ -23,6 +23,7 @@ $router->group('', ['maintenance'], function ($r) {
     $r->get('', [Site\HomeController::class, 'index']);
     $r->get('projeler', [Site\ProjectController::class, 'index']);
     $r->get('projeler/{slug}', [Site\ProjectController::class, 'show']);
+    $r->get('projeler/{slug}/tanitim', [Site\ProjectController::class, 'showcase']);
 
     $r->get('hakkimda', [Site\AboutController::class, 'index']);
 
@@ -71,6 +72,12 @@ $router->group($admin, ['auth'], function ($r) {
     $r->post('projeler/kaydet', [Admin\ProjectController::class, 'store']);
     $r->get('projeler/{id}/duzenle', [Admin\ProjectController::class, 'edit']);
     $r->post('projeler/{id}/guncelle', [Admin\ProjectController::class, 'update']);
+    // Proje tanıtım görselleri (sitede /projeler/{slug}/tanitim)
+    $r->get('projeler/{id}/tanitim', [Admin\ProjectShotController::class, 'index']);
+    $r->post('projeler/{id}/tanitim/yukle', [Admin\ProjectShotController::class, 'upload']);
+    $r->post('projeler/{id}/tanitim/sirala', [Admin\ProjectShotController::class, 'reorder']);
+    $r->post('projeler/{id}/tanitim/{shot}/guncelle', [Admin\ProjectShotController::class, 'update']);
+    $r->post('projeler/{id}/tanitim/{shot}/sil', [Admin\ProjectShotController::class, 'destroy']);
     $r->post('projeler/{id}/sil', [Admin\ProjectController::class, 'destroy']);
     $r->post('projeler/{id}/durum', [Admin\ProjectController::class, 'toggle']);
     $r->post('projeler/{id}/tur', [Admin\ProjectController::class, 'setKind']);

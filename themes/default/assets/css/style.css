@@ -825,3 +825,53 @@ button.contact-line, a.contact-line { cursor: pointer; }
     /* Mobil menüde açılır liste sayfa akışında: hafif cam tonu */
     .nav-dropdown-menu { background: rgba(255, 255, 255, .05); backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: none; }
 }
+
+/* ---------------------------------------------------------------- Proje tanıtımı (/projeler/{slug}/tanitim) */
+.showcase-header .eyebrow { display: block; margin-bottom: .4rem; }
+.showcase-header .hero-actions { justify-content: flex-start; margin-top: 1.6rem; }
+.showcase { list-style: none; margin: 0; padding: 0; display: grid; gap: clamp(2.5rem, 6vw, 5rem); }
+.showcase-item { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: clamp(1.4rem, 4vw, 3rem); align-items: center; }
+.showcase-item.is-reverse { grid-template-columns: minmax(0, 1fr) minmax(0, 1.55fr); }
+.showcase-item.is-reverse .showcase-image { order: 2; }
+.showcase-image { position: relative; display: block; padding: 0; overflow: hidden; cursor: zoom-in; border-radius: var(--radius);
+    box-shadow: 0 30px 70px rgba(0, 0, 0, .45); transition: transform .35s ease, border-color .3s ease; color: inherit; font: inherit; }
+.showcase-image img { display: block; width: 100%; height: auto; }
+.showcase-image:hover { transform: translateY(-4px); border-color: rgba(56, 189, 248, .45); }
+.showcase-zoom { position: absolute; right: 14px; bottom: 14px; display: inline-flex; align-items: center; gap: .35rem; padding: .4rem .75rem; border-radius: 999px;
+    font-size: .8rem; font-weight: 600; background: rgba(11, 15, 25, .75); border: 1px solid var(--border); backdrop-filter: blur(8px); opacity: 0; transition: opacity .25s ease; }
+.showcase-image:hover .showcase-zoom, .showcase-image:focus-visible .showcase-zoom { opacity: 1; }
+.showcase-num { display: inline-block; font: 700 .85rem 'JetBrains Mono', monospace; color: var(--accent); padding: .2rem .6rem; border-radius: 999px;
+    border: 1px solid rgba(56, 189, 248, .35); background: rgba(56, 189, 248, .08); }
+.showcase-text h2 { font-size: clamp(1.35rem, 2.6vw, 1.9rem); letter-spacing: -.02em; margin: .8rem 0 .6rem; line-height: 1.2; }
+.showcase-text p { color: var(--text-2); font-size: 1.02rem; line-height: 1.75; }
+.showcase-cta { margin-top: clamp(3rem, 7vw, 5rem); }
+@media (max-width: 900px) {
+    .showcase-item, .showcase-item.is-reverse { grid-template-columns: 1fr; }
+    .showcase-item.is-reverse .showcase-image { order: 0; }
+}
+
+/* Proje sayfasındaki tanıtım önizleme şeridi */
+.shot-strip { display: flex; align-items: center; gap: 1.2rem; padding: 1rem 1.2rem; margin-bottom: 1.5rem; color: inherit; transition: border-color .3s ease, transform .3s ease; }
+.shot-strip:hover { border-color: rgba(56, 189, 248, .45); transform: translateY(-2px); }
+.shot-strip-images { display: flex; flex-shrink: 0; }
+.shot-strip-images img { width: 96px; height: 60px; object-fit: cover; object-position: top; border-radius: 8px; border: 2px solid var(--bg); box-shadow: 0 6px 16px rgba(0, 0, 0, .4); }
+.shot-strip-images img + img { margin-left: -28px; }
+.shot-strip-text { display: flex; flex-direction: column; gap: .2rem; min-width: 0; }
+.shot-strip-text small { color: var(--accent); display: inline-flex; align-items: center; gap: .3rem; }
+@media (max-width: 560px) { .shot-strip { flex-direction: column; align-items: flex-start; } }
+
+/* Tam ekran galeri */
+.lightbox { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; gap: 1rem; padding: 2rem 1rem;
+    background: rgba(5, 8, 15, .92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.lightbox[hidden] { display: none; }
+.lightbox-figure { margin: 0; max-width: min(1400px, 100%); display: flex; flex-direction: column; align-items: center; gap: .9rem; }
+.lightbox-figure img { max-width: 100%; max-height: calc(100vh - 180px); border-radius: 12px; box-shadow: 0 30px 80px rgba(0, 0, 0, .6); }
+.lightbox-figure figcaption { text-align: center; max-width: 820px; display: flex; flex-direction: column; gap: .3rem; }
+.lightbox-figure figcaption span { color: var(--text-2); font-size: .95rem; }
+.lightbox-figure figcaption small { color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+.lightbox-nav, .lightbox-close { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0; cursor: pointer;
+    color: var(--text); background: rgba(255, 255, 255, .08); border: 1px solid var(--border); transition: background .2s ease; }
+.lightbox-nav:hover, .lightbox-close:hover { background: rgba(255, 255, 255, .16); }
+.lightbox-close { position: absolute; top: 1rem; right: 1rem; font-size: 1.8rem; line-height: 1; }
+@media (max-width: 640px) { .lightbox-nav { position: absolute; bottom: 1rem; } .lightbox-nav.is-prev { left: 1rem; } .lightbox-nav.is-next { right: 1rem; } }
+@media print { .lightbox { display: none !important; } }

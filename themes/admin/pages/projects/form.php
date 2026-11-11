@@ -19,6 +19,9 @@ $checked = static function (string $key) use ($project): string {
     <?php if ($isEdit && $project->is_published): ?>
         <a href="<?= e($project->url()) ?>" target="_blank" class="btn btn-outline-secondary btn-sm"><?= icon('eye', 16) ?> Sitede Gör</a>
     <?php endif; ?>
+    <?php if ($isEdit): ?>
+        <a href="<?= e(admin_url('projeler/' . $project->id . '/tanitim')) ?>" class="btn btn-outline-info btn-sm"><?= icon('image', 16) ?> Tanıtım Görselleri (<?= App\Models\ProjectShot::countFor((int) $project->id) ?>)</a>
+    <?php endif; ?>
     <a href="<?= e(admin_url('projeler')) ?>" class="btn btn-outline-primary btn-sm"><?= icon('arrow-left', 16) ?> Listeye Dön</a>
 </div>
 <?php $this->stop() ?>

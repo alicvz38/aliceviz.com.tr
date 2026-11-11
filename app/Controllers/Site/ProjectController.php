@@ -3,6 +3,7 @@
 namespace App\Controllers\Site;
 
 use App\Models\Project;
+use App\Models\ProjectShot;
 use App\Models\Setting;
 use App\Services\GithubService;
 
@@ -67,6 +68,7 @@ class ProjectController extends SiteController
             : [];
 
         $this->render('project-detail', [
+            'shots'     => ProjectShot::forProject((int) $project->id),
             'pageTitle' => $project->title,
             'metaDescription' => $project->summary,
             'ogImage'   => $project->imageUrl(),
@@ -86,6 +88,23 @@ class ProjectController extends SiteController
             'project'   => $project,
             'readme'    => $readme,
             'related'   => $related,
+        ]);
+    }
+    /** Tanıtım sayfası: projenin ekran görüntüleri sırayla, başlık ve açıklamalarıyla */
+    public function showcase(string $slug): void
+    {
+        $project = Project::findPublishedBySlug($slug);
+        $shots = $project ? ProjectShot::forProject((int) $project->id) : [];
+        if (!$project || !$shots) {
+            (new PageController($this->request))->notFound();
+            return;
+        }
+        $this->render('project-showcase', [
+            'pageTitle'       => $project->title . ' — Tanıtım',
+            'metaDescription' => $project->title . ' ekran görüntüleriyle: ' . ((string) $project->summary ?: 'özellikler ve arayüz.'),
+            'ogImage'         => $shots[0]->imageUrl(),
+            'project'         => $project,
+            'shots'           => $shots,
         ]);
     }
 }

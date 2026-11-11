@@ -34,8 +34,11 @@ $this->layout('main');
         </div>
 
         <div class="hero-actions">
+            <?php if (!empty($shots)): ?>
+                <a href="<?= e(url('projeler/' . $project->slug . '/tanitim')) ?>" class="btn btn-primary"><?= icon('image', 18) ?> Tanıtımı İncele</a>
+            <?php endif; ?>
             <?php if ($project->github_url): ?>
-                <a href="<?= e($project->github_url) ?>" class="btn btn-primary" target="_blank" rel="noopener"><?= icon('github', 18) ?> GitHub'da İncele</a>
+                <a href="<?= e($project->github_url) ?>" class="btn <?= !empty($shots) ? 'btn-ghost' : 'btn-primary' ?>" target="_blank" rel="noopener"><?= icon('github', 18) ?> GitHub'da İncele</a>
             <?php endif; ?>
             <?php if ($project->demo_url): ?>
                 <a href="<?= e($project->demo_url) ?>" class="btn btn-ghost" target="_blank" rel="noopener"><?= icon('external-link', 18) ?> Canlı Demo</a>
@@ -54,6 +57,16 @@ $this->layout('main');
 
 <section class="section pt-0">
     <div class="container">
+        <?php if (!empty($shots)): ?>
+            <a href="<?= e(url('projeler/' . $project->slug . '/tanitim')) ?>" class="shot-strip glass" aria-label="Tanıtımı incele">
+                <span class="shot-strip-images">
+                    <?php foreach (array_slice($shots, 0, 4) as $s): ?>
+                        <img src="<?= e($s->imageUrl()) ?>" alt="<?= e($s->title) ?>" loading="lazy">
+                    <?php endforeach; ?>
+                </span>
+                <span class="shot-strip-text"><strong><?= count($shots) ?> ekran görüntüsüyle tanıtım</strong><small>Arayüzü ve özellikleri adım adım inceleyin <?= icon('arrow-right', 14) ?></small></span>
+            </a>
+        <?php endif; ?>
         <?php if ($project->imageUrl()): ?>
             <figure class="project-image glass"><img src="<?= e($project->imageUrl()) ?>" alt="<?= e($project->title) ?>"></figure>
         <?php endif; ?>

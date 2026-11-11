@@ -387,3 +387,17 @@ body.dark .calendar-widget .fc .fc-col-header-cell-cushion { color: #bfc9d4 !imp
 body.dark .calendar-widget .fc .fc-list-sticky .fc-list-day > *, body.dark .calendar-widget .fc .fc-list-day-cushion { background: #1b2e4b !important; }
 body.dark .calendar-widget .fc .fc-list-event:hover td { background: rgba(255, 255, 255, .04); }
 body.dark .calendar-widget .fc .fc-list-event-title, body.dark .calendar-widget .fc .fc-list-event-time { color: #e0e6ed; }
+
+/* Proje tanıtım görselleri */
+.shot-upload { display: flex; gap: 10px; flex-wrap: wrap; }
+.shot-upload .form-control { flex: 1 1 320px; }
+.shot-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.shot-row { display: flex; gap: 14px; align-items: flex-start; padding: 12px; border-radius: 10px; background: rgba(255, 255, 255, .03); border: 1px solid rgba(128, 128, 128, .18); }
+.shot-row .drag-handle { cursor: grab; color: #888ea8; padding-top: 6px; flex-shrink: 0; }
+.shot-thumb { flex-shrink: 0; }
+.shot-thumb img { width: 180px; height: 112px; object-fit: cover; object-position: top; border-radius: 8px; border: 1px solid rgba(128, 128, 128, .25); display: block; }
+.shot-fields { flex: 1; min-width: 0; display: grid; gap: 8px; }
+.shot-fields .form-control { padding-left: 14px; }
+.shot-delete { flex-shrink: 0; }
+.gu-mirror.shot-row { list-style: none; }
+@media (max-width: 767px) { .shot-row { flex-wrap: wrap; } .shot-thumb img { width: 100%; height: auto; } }

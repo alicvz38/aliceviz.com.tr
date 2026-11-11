@@ -60,6 +60,9 @@ class SeoController extends SiteController
         $add('projeler', $latest, 'weekly', '0.8');
         foreach (Project::published() as $project) {
             $add('projeler/' . $project->slug, $project->updated_at ?: $project->created_at, 'monthly', '0.7');
+            if (\App\Models\ProjectShot::countFor((int) $project->id) > 0) {
+                $add('projeler/' . $project->slug . '/tanitim', $project->updated_at ?: $project->created_at, 'monthly', '0.7');
+            }
         }
         $add('hakkimda', null, 'monthly', '0.7');
         $add('iletisim', null, 'yearly', '0.6');
