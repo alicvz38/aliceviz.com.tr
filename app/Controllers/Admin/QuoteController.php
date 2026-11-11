@@ -71,18 +71,6 @@ class QuoteController extends AdminController
         ]);
     }
 
-    /** Telefon onayı: WhatsApp'tan onay kodu geldiyse "Doğrulandı" (tekrar basılırsa geri alınır) */
-    public function verifyPhone(string $id): void
-    {
-        $quote = QuoteRequest::find((int) $id);
-        if (!$quote) {
-            $this->respond('Teklif talebi bulunamadı.', admin_url('teklifler'), [], 'danger');
-        }
-        $verify = empty($quote->phone_verified_at);
-        QuoteRequest::updateById((int) $quote->id, ['phone_verified_at' => $verify ? date('Y-m-d H:i:s') : null]);
-        $this->respond($verify ? 'Telefon numarası doğrulandı.' : 'Telefon onayı geri alındı.', admin_url('teklifler/' . $quote->id), ['verified' => $verify]);
-    }
-
     public function destroy(string $id): void
     {
         $quote = QuoteRequest::find((int) $id);

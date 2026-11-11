@@ -50,7 +50,6 @@ $statuses = App\Models\QuoteRequest::STATUSES;
                                 <td>
                                     <a href="<?= e(admin_url('teklifler/' . $q->id)) ?>"><?= e($q->name) ?></a>
                                     <div class="text-muted small"><?= e($q->email) ?><?= $q->company ? ' · ' . e($q->company) : '' ?></div>
-                                    <?php if ($q->phone): ?><div class="small"><?= $q->phone_verified_at ? '<span class="text-success">' . icon('check-circle', 12) . ' Telefon doğrulandı</span>' : '<span class="text-warning">Telefon onayı bekliyor</span>' ?></div><?php endif; ?>
                                 </td>
                                 <td><?= e($q->serviceLabel()) ?><div class="text-muted small"><?= e($q->packageLabel()) ?></div></td>
                                 <td class="small"><?= e($q->budget ?: '-') ?></td>

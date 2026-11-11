@@ -5,7 +5,6 @@ namespace App\Controllers\Site;
 use App\Core\Response;
 use App\Models\Message;
 use App\Services\Notifier;
-use App\Support\PhoneVerify;
 
 /**
  * İletişim: ziyaretçiler kendi e-posta adresleriyle mesaj gönderir.
@@ -60,18 +59,13 @@ class ContactController extends SiteController
             Response::error('Kısa sürede çok fazla mesaj gönderildi. Lütfen daha sonra tekrar deneyin.', [], 429);
         }
 
-        $code = PhoneVerify::code();
-        $id = Message::create($data + ['folder' => 'inbox', 'ip' => $r->ip(), 'phone_code' => $code]);
+        $id = Message::create($data + ['folder' => 'inbox', 'ip' => $r->ip()]);
         $this->hit('contact');
 
-        $body = $data['body'] . "\n\nTelefon: " . $data['phone']
-            . "\nWhatsApp onay kodu: " . $code . ' (bu kod WhatsApp\'tan bu numaradan gelirse numara gerçektir)';
+        $body = $data['body'] . ($data['phone'] ? "\n\nTelefon: " . $data['phone'] : '');
         Notifier::newMessage($data['name'], $data['email'], $data['subject'], $body, $this->absolute(admin_url('mesajlar/' . $id)));
 
-        $this->respond('Mesajınız gönderildi! En kısa sürede WhatsApp (' . $data['phone'] . ') ve e-posta (' . $data['email'] . ') üzerinden dönüş yapacağım.', url('iletisim'), [
-            'verify_url'  => PhoneVerify::enabled() ? PhoneVerify::link($code, 'mesajımı', $id) : '',
-            'verify_code' => $code,
-        ]);
+        $this->respond('Mesajınız gönderildi! En kısa sürede WhatsApp (' . $data['phone'] . ') ve e-posta (' . $data['email'] . ') üzerinden dönüş yapacağım.', url('iletisim'));
     }
 
     private function absolute(string $path): string

@@ -12,7 +12,7 @@ class QuoteRequest extends Model
 {
     protected static string $table = 'quote_requests';
     protected static array $fillable = [
-        'service', 'package', 'name', 'email', 'phone', 'phone_code', 'phone_verified_at', 'company', 'budget',
+        'service', 'package', 'name', 'email', 'phone', 'company', 'budget',
         'deadline', 'message', 'status', 'admin_note', 'ip',
     ];
 

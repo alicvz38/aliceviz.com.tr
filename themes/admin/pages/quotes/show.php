@@ -31,7 +31,7 @@ $wa = whatsapp_href($quote->phone, $waText);
                 <dt class="col-sm-3">E-posta</dt>
                 <dd class="col-sm-9"><a href="<?= e(admin_url('mesajlar/yeni?teklif=' . $quote->id)) ?>"><?= e($quote->email) ?></a></dd>
                 <dt class="col-sm-3">Telefon</dt>
-                <dd class="col-sm-9"><?= $wa ? '<a href="' . e($wa) . '" target="_blank" rel="noopener" title="WhatsApp ile yaz">' . icon('whatsapp', 14) . ' ' . e($quote->phone) . '</a>' . ($quote->phone_verified_at ? ' <span class="badge badge-light-success ms-1">Doğrulandı</span>' : ' <span class="badge badge-light-warning ms-1">Onay bekliyor</span>') : '-' ?></dd>
+                <dd class="col-sm-9"><?= $wa ? '<a href="' . e($wa) . '" target="_blank" rel="noopener" title="WhatsApp ile yaz">' . icon('whatsapp', 14) . ' ' . e($quote->phone) . '</a>' : '-' ?></dd>
                 <dt class="col-sm-3">Hizmet / Paket</dt>
                 <dd class="col-sm-9"><?= e($quote->serviceLabel()) ?> · <?= e($quote->packageLabel()) ?></dd>
                 <dt class="col-sm-3">Bütçe</dt>
@@ -57,7 +57,6 @@ $wa = whatsapp_href($quote->phone, $waText);
     </div>
 
     <div class="col-xl-4 col-12 layout-spacing">
-        <?= $this->partial('phone-verify', ['item' => $quote, 'action' => admin_url('teklifler/' . $quote->id . '/telefon-onayi')]) ?>
         <form method="post" action="<?= e(admin_url('teklifler/' . $quote->id . '/guncelle')) ?>" class="widget widget-content-area" data-ajax data-ajax-success="none" id="quoteForm">
             <?= csrf_field() ?>
             <div class="section-title"><?= icon('settings') ?> Takip</div>

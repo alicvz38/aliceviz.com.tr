@@ -5,7 +5,6 @@ namespace App\Controllers\Site;
 use App\Core\Response;
 use App\Models\QuoteRequest;
 use App\Services\Notifier;
-use App\Support\PhoneVerify;
 use App\Support\ServiceCatalog;
 
 /** Teklif Al formu (web sitesi / masaüstü uygulama) */
@@ -72,14 +71,13 @@ class QuoteController extends SiteController
             Response::error('Kısa sürede çok fazla talep gönderildi. Lütfen daha sonra tekrar deneyin.', [], 429);
         }
 
-        $code = PhoneVerify::code();
-        $id = QuoteRequest::create($data + ['status' => 'new', 'ip' => $r->ip(), 'phone_code' => $code]);
+        $id = QuoteRequest::create($data + ['status' => 'new', 'ip' => $r->ip()]);
         $this->hit('quote');
 
         $quote = QuoteRequest::find($id);
         $summary = 'Hizmet: ' . $quote->serviceLabel() . "\nPaket: " . $quote->packageLabel()
             . "\nBütçe: " . ($data['budget'] ?? '-') . "\nSüre: " . ($data['deadline'] ?? '-')
-            . "\nTelefon: " . $data['phone'] . ' (WhatsApp onay kodu: ' . $code . ')' ."\nFirma: " . ($data['company'] ?? '-')
+            . "\nTelefon: " . ($data['phone'] ?? '-') . "\nFirma: " . ($data['company'] ?? '-')
             . "\n\n" . $data['message'];
         $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
         Notifier::newMessage(
@@ -90,10 +88,6 @@ class QuoteController extends SiteController
             $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . admin_url('teklifler/' . $id)
         );
 
-        $this->respond('Teklif talebiniz alındı! İnceleyip en kısa sürede WhatsApp (' . $data['phone'] . ') ve e-posta (' . $data['email'] . ') üzerinden dönüş yapacağım.', url('teklif-al'), [
-            'id'          => $id,
-            'verify_url'  => PhoneVerify::enabled() ? PhoneVerify::link($code, 'teklif talebimi', $id) : '',
-            'verify_code' => $code,
-        ]);
+        $this->respond('Teklif talebiniz alındı! İnceleyip en kısa sürede WhatsApp (' . $data['phone'] . ') ve e-posta (' . $data['email'] . ') üzerinden dönüş yapacağım.', url('teklif-al'), ['id' => $id]);
     }
 }
