@@ -53,17 +53,126 @@ class DashboardController extends AdminController
         // Panel açık = canlı destek için çevrimiçi
         \App\Services\LiveChat::touchAdmin();
 
+        $this->json(['ok' => true] + self::snapshot());
+    }
+
+    /**
+     * Anlık bildirim (WebSocket sunucusu olmayan paylaşımlı hostingde): uzun bekleme (long polling).
+     * Panel bu isteği açık tutar; sunucu Gelen Kutusu'nu IMAP IDLE ile dinler ve saniyede bir
+     * veritabanını (site formu, teklif, canlı destek, istatistik) kontrol eder. Bir değişiklik olunca
+     * hemen yanıt verir, panel de bağlantıyı yeniden açar. Değişiklik yoksa ~25-50 sn sonra boş döner.
+     *   ?sig=...  panelin bildiği son durum (farklıysa beklemeden döner)
+     */
+    public function wait(): void
+    {
+        // Oturum dosyası kilitli kalmasın: beklerken diğer panel istekleri engellenmez
+        session_write_close();
+        ignore_user_abort(false);
+        // Bekleme süresi: zaman sınırı uzatılabiliyorsa 50 sn, değilse sunucu sınırının biraz altı
+        $max = (int) ini_get('max_execution_time');
+        $limit = @set_time_limit(75) || $max <= 0 ? 50 : max(5, min(50, $max - 8));
+
+        $sig = (string) $this->request->get('sig', '');
+        $snap = self::snapshot();
+        if ($sig === '' || $sig !== $snap['sig']) {
+            $this->json(['ok' => true, 'waited' => 0] + $snap);
+        }
+
+        \App\Services\LiveChat::touchAdmin();
+        $imap = null;
+        if (\App\Services\MailFetcher::isEnabled()) {
+            try {
+                $imap = \App\Services\MailFetcher::openIdle();
+            } catch (\Throwable) {
+                $imap = null; // IMAP'e bağlanılamazsa yalnızca veritabanı izlenir
+            }
+        }
+
+        $started = microtime(true);
+        $newMail = false;
+        $nextDb = 0.0;
+        try {
+            while (microtime(true) - $started < $limit) {
+                // 1) Gmail / posta sunucusu: yeni e-posta bildirimi (en fazla 1 sn bekler)
+                if ($imap) {
+                    $read = [$imap->socket()];
+                    $w = $e = null;
+                    if (@stream_select($read, $w, $e, 1, 0) > 0) {
+                        foreach ($imap->idleRead() as $line) {
+                            if (preg_match('/^\* \d+ (EXISTS|EXPUNGE)/', $line)) {
+                                $newMail = true;
+                            }
+                        }
+                    }
+                } else {
+                    usleep(1_000_000);
+                }
+                if ($newMail || connection_aborted()) {
+                    break;
+                }
+                // 2) Veritabanı: site formu, teklif, canlı destek, istatistik, başka sekmedeki işlemler
+                if (microtime(true) >= $nextDb) {
+                    $nextDb = microtime(true) + 1;
+                    Setting::refresh();
+                    if (self::signature() !== $sig) {
+                        break;
+                    }
+                }
+            }
+        } catch (\Throwable) {
+            // IMAP bağlantısı koptu: o ana kadarki durumla dön, panel yeniden bağlanır
+        } finally {
+            if ($imap) {
+                try {
+                    $imap->logout();
+                } catch (\Throwable) {
+                }
+            }
+        }
+
+        if ($newMail) {
+            try {
+                (new \App\Services\MailFetcher())->syncInbox(15);
+            } catch (\Throwable $e) {
+                Setting::set('imap_last_error', mb_substr($e->getMessage(), 0, 300));
+            }
+        }
+        $this->json(['ok' => true, 'waited' => round(microtime(true) - $started, 1)] + self::snapshot());
+    }
+
+    /** Rozet sayıları ve değişiklik sürümleri */
+    private static function snapshot(): array
+    {
         $last = (int) Setting::get('imap_last_sync', '0');
-        $this->json([
-            'ok'           => true,
-            'messages'     => Message::countUnread(),
-            'quotes'       => QuoteRequest::countNew(),
-            'chats'        => \App\Models\ChatConversation::countUnread(),
+        $data = [
+            'messages'      => Message::countUnread(),
+            'quotes'        => QuoteRequest::countNew(),
+            'chats'         => \App\Models\ChatConversation::countUnread(),
             // Mesaj tablosunda değişiklik olduysa (yeni / silinen e-posta) Mesajlar sayfası listeyi yeniler
-            'mail_version' => (string) \App\Core\Database::getInstance()->fetchColumn("SELECT CONCAT(COUNT(*), '-', COALESCE(MAX(id), 0), '-', COALESCE(SUM(is_read), 0)) FROM messages"),
-            'synced_ago'   => $last ? time_ago(date('Y-m-d H:i:s', $last)) : null,
-            'progress'     => \App\Services\MailFetcher::progress(),
+            'mail_version'  => self::mailVersion(),
+            'synced_ago'    => $last ? time_ago(date('Y-m-d H:i:s', $last)) : null,
+            'progress'      => \App\Services\MailFetcher::progress(),
             'stats_version' => \App\Support\Stats::version(),
-        ]);
+        ];
+        $data['sig'] = self::signature($data);
+        return $data;
+    }
+
+    /** Değişiklik imzası: bunlardan biri değişince bekleyen istek hemen döner */
+    private static function signature(?array $d = null): string
+    {
+        $d ??= [
+            'messages'      => Message::countUnread(),
+            'quotes'        => QuoteRequest::countNew(),
+            'chats'         => \App\Models\ChatConversation::countUnread(),
+            'mail_version'  => self::mailVersion(),
+            'stats_version' => \App\Support\Stats::version(),
+        ];
+        return md5(implode('|', [$d['messages'], $d['quotes'], $d['chats'], $d['mail_version'], $d['stats_version']]));
+    }
+
+    private static function mailVersion(): string
+    {
+        return (string) \App\Core\Database::getInstance()->fetchColumn("SELECT CONCAT(COUNT(*), '-', COALESCE(MAX(id), 0), '-', COALESCE(SUM(is_read), 0)) FROM messages");
     }
 }

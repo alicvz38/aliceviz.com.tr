@@ -1,7 +1,7 @@
 <?php
 /**
  * İstatistikler — günlük tekil ziyaretçi, proje incelemeleri, en çok incelenen projeler ve sayfalar.
- * Canlı: WebSocket varsa sunucu değişikliği anında bildirir (admin:counters), yoksa 2 sn'de bir sürüm yoklanır.
+ * Canlı: WebSocket ya da uzun bekleme (bekle) değişikliği anında bildirir (admin:counters); ikisi de yoksa 2 sn'de bir sürüm yoklanır.
  * @var App\Core\View $this
  * @var int $days
  * @var array $ranges
@@ -173,7 +173,7 @@ $diffText = static fn (int $d) => $d === 0 ? 'Dünle aynı' : ($d > 0 ? '+' . $d
 
     // 2) WebSocket yoksa (paylaşımlı hosting): sayfa açıkken 2 sn'de bir hafif sürüm yoklaması
     setInterval(function () {
-        if (live || document.hidden || busy) return;
+        if (live || document.hidden || busy || (window.adminWaitOk && window.adminWaitOk())) return;
         Ajax.get(cfg.versionUrl).then(function (res) {
             if (res && res.ok && res.version !== cfg.version) refresh();
         });

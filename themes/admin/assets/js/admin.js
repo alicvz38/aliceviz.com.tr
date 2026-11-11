@@ -314,8 +314,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function poll() {
         if (document.hidden) return;
-        // Canlı bağlantı varken yoklama yalnızca 2 dakikada bir yedek olarak yapılır
-        if (live && Date.now() - lastPoll < 120000) return;
+        // Canlı bağlantı (WebSocket ya da uzun bekleme) varken yoklama yalnızca 2 dakikada bir yedek olarak yapılır
+        if ((live || waitOk()) && Date.now() - lastPoll < 120000) return;
         lastPoll = Date.now();
         Ajax.get(adminUrl + 'bildirimler').then(function (res) { if (res.ok) handleCounters(res); });
     }
@@ -368,9 +368,40 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // ------------------------------------------------------------ Anlık bildirim: uzun bekleme (WebSocket yoksa)
+    // Paylaşımlı hostingde WebSocket sunucusu çalışmaz. Panel sunucuya "bir şey olursa haber ver" isteği
+    // açık tutar: sunucu Gelen Kutusu'nu IMAP IDLE ile dinler, veritabanını saniyede bir kontrol eder ve
+    // değişiklik olduğu anda yanıt verir (1-2 sn). Panel de hemen yeni isteği açar.
+    var waitSig = '', waiting = false, waitLastOk = 0, waitDelay = 0;
+    function waitOk() { return Date.now() - waitLastOk < 90000; }
+    window.adminWaitOk = waitOk; // sayfalar kendi yoklamalarını gereksiz yere yapmasın
+    function waitLoop() {
+        if (waiting || live || document.hidden) return; // WebSocket varsa gerek yok; gizli sekmede durur
+        waiting = true;
+        Ajax.get(adminUrl + 'bekle', { sig: waitSig }).then(function (res) {
+            if (res && res.ok && res.sig) {
+                waitSig = res.sig;
+                waitLastOk = Date.now();
+                waitDelay = 0;
+                handleCounters(res);
+            } else {
+                waitDelay = Math.min((waitDelay || 2500) * 2, 60000); // hata: giderek seyrek dene
+            }
+        }).catch(function () {
+            waitDelay = Math.min((waitDelay || 2500) * 2, 60000);
+        }).finally(function () {
+            waiting = false;
+            setTimeout(waitLoop, waitDelay);
+        });
+    }
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) waitLoop(); });
+    document.addEventListener('admin:realtime', function (e) { if (!e.detail.live) setTimeout(waitLoop, 500); });
+
     connectRealtime();
     poll();
     setInterval(poll, 30000);
+    // WebSocket bağlanamadıysa kısa süre sonra uzun beklemeye geç
+    setTimeout(waitLoop, 1500);
 });
 
 /**

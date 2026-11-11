@@ -59,6 +59,45 @@ class MailFetcher
         }
     }
 
+    /**
+     * Yalnızca Gelen Kutusu'ndaki yeni e-postaları hızlıca alır (anlık bildirim sonrası).
+     * Klasörler henüz keşfedilmemişse tam senkronizasyona döner.
+     * @return int Eklenen e-posta sayısı
+     */
+    public function syncInbox(int $seconds = 15): int
+    {
+        $folder = Database::getInstance()->fetch("SELECT * FROM mail_folders WHERE folder_key = 'inbox' LIMIT 1");
+        if (!$folder) {
+            return $this->sync($seconds);
+        }
+        if (!self::acquireLock()) {
+            return 0; // başka bir senkronizasyon zaten çalışıyor (o da yeni e-postayı alacak)
+        }
+        $this->deadline = microtime(true) + $seconds;
+        try {
+            $imap = $this->connect();
+            try {
+                [$added] = $this->syncNew($imap, $folder, strtolower((string) Setting::get('smtp_user', '')));
+            } finally {
+                $imap->logout();
+            }
+            Setting::set('imap_last_sync', (string) time());
+            Setting::set('imap_last_error', '');
+            return $added;
+        } finally {
+            self::releaseLock();
+        }
+    }
+
+    /** Gelen Kutusu'nu dinlemek için bağlantı açar (IMAP IDLE); çağıran kapatır */
+    public static function openIdle(): ImapClient
+    {
+        $imap = (new self())->connect();
+        $imap->select('INBOX');
+        $imap->idleStart();
+        return $imap;
+    }
+
     /** Bu çalıştırmanın bitmesi gereken an (zaman bütçesi) */
     private float $deadline = 0;
 

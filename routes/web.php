@@ -70,6 +70,7 @@ $router->group($admin, ['auth'], function ($r) {
     $r->get('takvim/esitle', [Admin\CalendarController::class, 'sync']);
     $r->post('bakim-modu', [Admin\DashboardController::class, 'toggleMaintenance']);
     $r->get('bildirimler', [Admin\DashboardController::class, 'counters']);
+    $r->get('bekle', [Admin\DashboardController::class, 'wait']); // anlık bildirim (uzun bekleme)
 
     $r->get('projeler', [Admin\ProjectController::class, 'index']);
     $r->get('projeler/ekle', [Admin\ProjectController::class, 'create']);
