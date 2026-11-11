@@ -279,14 +279,14 @@ final class MailAttachments
             return '';
         }
         $until = date('d.m.Y', strtotime('+' . self::LINK_DAYS . ' days'));
-        $h = '<div style="margin-top:26px;padding-top:18px;border-top:1px solid #1f2a44">'
+        $h = '<div style="margin-top:26px;padding-top:18px;border-top:1px solid rgba(255,255,255,.12)">'
             . '<div style="font-size:13px;color:#94a3b8;margin-bottom:10px">&#128206; <b style="color:#e2e8f0">' . count($links) . ' dosya</b> &middot; ' . $until . ' tarihine kadar indirilebilir</div>';
         foreach ($links as $f) {
             [$ext, $color] = self::badge((string) $f['name']);
             $url = htmlspecialchars(self::url($f), ENT_QUOTES, 'UTF-8');
             $name = htmlspecialchars((string) $f['name'], ENT_QUOTES, 'UTF-8');
             $h .= '<a href="' . $url . '" style="display:block;text-decoration:none;color:inherit;margin-bottom:8px">'
-                . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #1f2a44;border-radius:12px;background:#0f172a;border-collapse:separate" bgcolor="#0f172a">'
+                . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #2a3550;border:1px solid rgba(255,255,255,.13);border-radius:12px;background:#0f172a;background:rgba(255,255,255,.06);border-collapse:separate" bgcolor="#0f172a">'
                 . '<tr>'
                 . '<td width="64" style="padding:12px 0 12px 12px;vertical-align:middle">'
                 . '<div style="width:46px;height:46px;border-radius:8px;background:' . $color . ';color:#ffffff;font:bold 12px/46px Arial,Helvetica,sans-serif;text-align:center;letter-spacing:.5px">' . htmlspecialchars($ext, ENT_QUOTES, 'UTF-8') . '</div>'

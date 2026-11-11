@@ -293,7 +293,7 @@ class Mailer
         }
 
         // Cam kart: yarı saydam zemin + ince açık kenarlık (sitedeki .glass gibi); rgba desteklemeyende koyu zemin
-        $glass = 'background-color:#111827;background-color:rgba(15,23,42,.66);border:1px solid #2a3550;border:1px solid rgba(255,255,255,.14);border-radius:18px';
+        $glass = 'background-color:#111827;background-color:rgba(11,15,25,.48);border:1px solid #2a3550;border:1px solid rgba(255,255,255,.16);border-radius:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)';
         // Orta panel: sitenin resmi tam genişlikte, ortalı (panel sabit genişlikte ve ortada; resim her uygulamada ortada kalır)
         $panel = 'max-width:660px;border-radius:22px;background-color:#0b0f19'
             . ($cover !== '' ? ';background-image:url(' . $esc($cover) . ');background-size:cover;background-position:center center;background-repeat:no-repeat' : '');
