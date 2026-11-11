@@ -163,15 +163,21 @@ final class MailAttachments
     }
 
     /** Gönderildikten sonra: e-postaya bağla. Hepsi 30 gün saklanır (bağlantılar alıcı için, ekler panelden indirmek için) */
-    public static function attach(array $inline, array $links, int $messageId): void
+    public static function attach(array $inline, array $links, int $messageId, string $to = '', string $toName = '', string $subject = ''): void
     {
         $db = Database::getInstance();
-        $expires = self::expiry();
+        // Alıcı bilgisi dosyanın kaydında da tutulur: e-posta panelden silinse bile listede görünür
+        $info = [
+            'expires_at'     => self::expiry(),
+            'recipient'      => mb_substr($to, 0, 190) ?: null,
+            'recipient_name' => mb_substr($toName, 0, 100) ?: null,
+            'subject'        => mb_substr($subject, 0, 200) ?: null,
+        ];
         foreach ($inline as $r) {
-            $db->update('mail_attachments', ['message_id' => $messageId, 'as_link' => 0, 'expires_at' => $expires], 'id = :id', ['id' => $r['id']]);
+            $db->update('mail_attachments', ['message_id' => $messageId, 'as_link' => 0] + $info, 'id = :id', ['id' => $r['id']]);
         }
         foreach ($links as $r) {
-            $db->update('mail_attachments', ['message_id' => $messageId, 'as_link' => 1, 'expires_at' => $expires], 'id = :id', ['id' => $r['id']]);
+            $db->update('mail_attachments', ['message_id' => $messageId, 'as_link' => 1] + $info, 'id = :id', ['id' => $r['id']]);
         }
     }
 
@@ -195,7 +201,8 @@ final class MailAttachments
     public static function all(int $limit = 500): array
     {
         return Database::getInstance()->fetchAll(
-            'SELECT a.*, m.email, m.name AS recipient, m.subject
+            'SELECT a.*, COALESCE(a.recipient, m.email) AS email, COALESCE(a.recipient_name, m.name) AS recipient,
+                    COALESCE(a.subject, m.subject) AS subject, m.id AS message_exists
              FROM mail_attachments a LEFT JOIN messages m ON m.id = a.message_id
              ORDER BY a.id DESC LIMIT ' . (int) $limit
         );

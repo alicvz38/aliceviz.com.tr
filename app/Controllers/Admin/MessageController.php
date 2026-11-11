@@ -174,7 +174,7 @@ class MessageController extends AdminController
         // Message-ID saklanır: Gmail "Gönderilmiş" kopyası senkronize edilince çift kayıt oluşmaz
         $id = Message::create($record + ['send_status' => 'sent', 'message_id' => $messageId]);
         if ($files) {
-            \App\Services\MailAttachments::attach($inline, $links, (int) $id);
+            \App\Services\MailAttachments::attach($inline, $links, (int) $id, $to, (string) $name, $subject);
         }
         if ($parentId) {
             Message::updateById($parentId, ['replied_at' => date('Y-m-d H:i:s'), 'is_read' => 1]);

@@ -92,8 +92,16 @@ $this->layout('main');
                                             <span class="text-muted small">Gönderilmedi (formda kaldı)</span>
                                         <?php else: ?>
                                             <?php if ($f['recipient']): ?><div class="small text-white fw-semibold"><?= e($f['recipient']) ?></div><?php endif; ?>
-                                            <div class="small text-white"><?= e((string) $f['email']) ?></div>
-                                            <a href="<?= e(admin_url('mesajlar/' . $f['message_id'])) ?>" class="small"><?= e(str_limit((string) $f['subject'], 40)) ?></a>
+                                            <?php if ($f['email']): ?>
+                                                <div class="small text-white"><?= e((string) $f['email']) ?></div>
+                                            <?php else: ?>
+                                                <div class="small text-muted">E-posta kaydı silinmiş</div>
+                                            <?php endif; ?>
+                                            <?php if ($f['message_exists']): ?>
+                                                <a href="<?= e(admin_url('mesajlar/' . $f['message_id'])) ?>" class="small"><?= e(str_limit((string) $f['subject'], 40)) ?></a>
+                                            <?php elseif ($f['subject']): ?>
+                                                <div class="small text-muted"><?= e(str_limit((string) $f['subject'], 40)) ?> <span title="E-posta panelden silindi">(e-posta silindi)</span></div>
+                                            <?php endif; ?>
                                         <?php endif; ?>
                                     </td>
                                     <td class="text-end"><?= (int) $f['downloads'] ?></td>
